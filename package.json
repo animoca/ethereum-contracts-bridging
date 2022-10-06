@@ -1,6 +1,6 @@
 {
   "name": "@animoca/ethereum-contracts-bridging",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Solidity assets bridging contracts",
   "author": "Animoca Brands",
   "license": "MIT",
