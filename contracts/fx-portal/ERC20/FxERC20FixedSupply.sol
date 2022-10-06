@@ -21,11 +21,7 @@ contract FxERC20FixedSupply is FxERC20, IFxERC20FixedSupply {
         string calldata uri,
         address initialOwner
     ) external {
-        address[] memory holders = new address[](1);
-        uint256[] memory allocations = new uint256[](1);
-        holders[0] = fxManager_;
-        allocations[0] = totalSupply;
-        ERC20Storage.layout().proxyInit(holders, allocations);
         init(fxManager_, connectedToken_, tokenName, tokenSymbol, tokenDecimals, uri, initialOwner);
+        ERC20Storage.layout().mint(fxManager_, totalSupply);
     }
 }

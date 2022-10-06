@@ -52,8 +52,10 @@ abstract contract FxERC20 is
         string calldata uri,
         address initialOwner
     ) internal {
+        ERC20Storage.init();
         ERC20DetailedStorage.layout().proxyInit(tokenName, tokenSymbol, tokenDecimals);
-        ERC20MetadataStorage.layout().proxyInit(uri);
+        ERC20MetadataStorage.init();
+        ERC20MetadataStorage.layout().setTokenURI(uri);
         ERC20PermitStorage.init();
         ERC20Storage.initERC20BatchTransfers();
         ERC20Storage.initERC20SafeTransfers();

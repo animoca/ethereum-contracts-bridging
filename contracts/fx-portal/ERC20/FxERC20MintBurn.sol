@@ -12,8 +12,6 @@ import {Context} from "@openzeppelin/contracts/utils/Context.sol";
 import {ForwarderRegistryContextBase} from "@animoca/ethereum-contracts/contracts/metatx/base/ForwarderRegistryContextBase.sol";
 
 contract FxERC20MintBurn is FxERC20, ERC20MintableBase, ERC20BurnableBase, IFxERC20MintBurn, AccessControlBase {
-    using ERC20Storage for ERC20Storage.Layout;
-
     constructor(IForwarderRegistry forwarderRegistry) FxERC20(forwarderRegistry) {}
 
     function initialize(
@@ -25,12 +23,9 @@ contract FxERC20MintBurn is FxERC20, ERC20MintableBase, ERC20BurnableBase, IFxER
         string calldata uri,
         address initialOwner
     ) external {
-        address[] memory holders = new address[](0);
-        uint256[] memory allocations = new uint256[](0);
-        ERC20Storage.layout().proxyInit(holders, allocations);
+        init(fxManager_, connectedToken_, tokenName, tokenSymbol, tokenDecimals, uri, initialOwner);
         ERC20Storage.initERC20Mintable();
         ERC20Storage.initERC20Burnable();
-        init(fxManager_, connectedToken_, tokenName, tokenSymbol, tokenDecimals, uri, initialOwner);
     }
 
     /// @inheritdoc ForwarderRegistryContextBase
