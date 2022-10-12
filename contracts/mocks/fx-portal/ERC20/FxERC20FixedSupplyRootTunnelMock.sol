@@ -2,7 +2,7 @@
 pragma solidity 0.8.17;
 
 import {IForwarderRegistry} from "@animoca/ethereum-contracts/contracts/metatx/interfaces/IForwarderRegistry.sol";
-import {FxERC20FixedSupplyRootTunnel} from "./../../../fx-portal/ERC20/FxERC20FixedSupplyRootTunnel.sol";
+import {FxERC20FixedSupplyRootTunnel} from "./../../../fx-portal/ERC20/tunnel/FxERC20FixedSupplyRootTunnel.sol";
 
 contract FxERC20FixedSupplyRootTunnelMock is FxERC20FixedSupplyRootTunnel {
     constructor(

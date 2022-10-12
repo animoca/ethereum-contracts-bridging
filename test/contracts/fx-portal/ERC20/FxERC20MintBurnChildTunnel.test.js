@@ -181,15 +181,17 @@ describe('FxERC20MintBurnChildTunnel', function () {
 
     context('withdraw(address,uint256)', function () {
       it('reverts if the token is not mapped (zero address)', async function () {
-        await expect(this.contract.withdraw(this.unmappedTokenToZeroAddress.address, withdrawalAmount))
-          .to.be.revertedWithCustomError(this.contract, 'FxERC20TokenNotMapped')
-          .withArgs(ZeroAddress);
+        await expect(this.contract.withdraw(this.unmappedTokenToZeroAddress.address, withdrawalAmount)).to.be.revertedWithCustomError(
+          this.contract,
+          'FxERC20TokenNotMapped'
+        );
       });
 
       it('reverts if the token is not mapped (wrong mapping)', async function () {
-        await expect(this.contract.withdraw(this.unmappedTokenToWrongAddress.address, withdrawalAmount))
-          .to.be.revertedWithCustomError(this.contract, 'FxERC20TokenNotMapped')
-          .withArgs(rootTokenWrongMapping);
+        await expect(this.contract.withdraw(this.unmappedTokenToWrongAddress.address, withdrawalAmount)).to.be.revertedWithCustomError(
+          this.contract,
+          'FxERC20TokenNotMapped'
+        );
       });
 
       context('when successful', function () {
@@ -205,15 +207,15 @@ describe('FxERC20MintBurnChildTunnel', function () {
 
     context('withdrawTo(address,uint256)', function () {
       it('reverts if the token is not mapped (zero address)', async function () {
-        await expect(this.contract.withdrawTo(this.unmappedTokenToZeroAddress.address, deployer.address, withdrawalAmount))
-          .to.be.revertedWithCustomError(this.contract, 'FxERC20TokenNotMapped')
-          .withArgs(ZeroAddress);
+        await expect(
+          this.contract.withdrawTo(this.unmappedTokenToZeroAddress.address, deployer.address, withdrawalAmount)
+        ).to.be.revertedWithCustomError(this.contract, 'FxERC20TokenNotMapped');
       });
 
       it('reverts if the token is not mapped (wrong mapping)', async function () {
-        await expect(this.contract.withdrawTo(this.unmappedTokenToWrongAddress.address, deployer.address, withdrawalAmount))
-          .to.be.revertedWithCustomError(this.contract, 'FxERC20TokenNotMapped')
-          .withArgs(rootTokenWrongMapping);
+        await expect(
+          this.contract.withdrawTo(this.unmappedTokenToWrongAddress.address, deployer.address, withdrawalAmount)
+        ).to.be.revertedWithCustomError(this.contract, 'FxERC20TokenNotMapped');
       });
 
       context('when successful', function () {
@@ -229,15 +231,17 @@ describe('FxERC20MintBurnChildTunnel', function () {
 
     context('onERC20Received(address,address,uint256,bytes) receiver is from', function () {
       it('reverts if the token is not mapped (zero address)', async function () {
-        await expect(this.unmappedTokenToZeroAddress.safeTransfer(this.contract.address, withdrawalAmount, EmptyByte))
-          .to.be.revertedWithCustomError(this.contract, 'FxERC20TokenNotMapped')
-          .withArgs(ZeroAddress);
+        await expect(this.unmappedTokenToZeroAddress.safeTransfer(this.contract.address, withdrawalAmount, EmptyByte)).to.be.revertedWithCustomError(
+          this.contract,
+          'FxERC20TokenNotMapped'
+        );
       });
 
       it('reverts if the token is not mapped (wrong mapping)', async function () {
-        await expect(this.unmappedTokenToWrongAddress.safeTransfer(this.contract.address, withdrawalAmount, EmptyByte))
-          .to.be.revertedWithCustomError(this.contract, 'FxERC20TokenNotMapped')
-          .withArgs(rootTokenWrongMapping);
+        await expect(this.unmappedTokenToWrongAddress.safeTransfer(this.contract.address, withdrawalAmount, EmptyByte)).to.be.revertedWithCustomError(
+          this.contract,
+          'FxERC20TokenNotMapped'
+        );
       });
 
       context('when successful', function () {
@@ -258,9 +262,7 @@ describe('FxERC20MintBurnChildTunnel', function () {
             withdrawalAmount,
             ethers.utils.defaultAbiCoder.encode(['address'], [deployer.address])
           )
-        )
-          .to.be.revertedWithCustomError(this.contract, 'FxERC20TokenNotMapped')
-          .withArgs(ZeroAddress);
+        ).to.be.revertedWithCustomError(this.contract, 'FxERC20TokenNotMapped');
       });
 
       it('reverts if the token is not mapped (wrong mapping)', async function () {
@@ -270,9 +272,7 @@ describe('FxERC20MintBurnChildTunnel', function () {
             withdrawalAmount,
             ethers.utils.defaultAbiCoder.encode(['address'], [deployer.address])
           )
-        )
-          .to.be.revertedWithCustomError(this.contract, 'FxERC20TokenNotMapped')
-          .withArgs(rootTokenWrongMapping);
+        ).to.be.revertedWithCustomError(this.contract, 'FxERC20TokenNotMapped');
       });
 
       context('when successful', function () {
