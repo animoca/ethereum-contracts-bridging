@@ -61,12 +61,7 @@ abstract contract FxERC20ChildTunnel is FxBaseChildTunnel, FxTokenMapping, ERC20
     /// @param value The amount of tokens transferred.
     /// @param data Empty if the receiver is the same as the tokens sender, else the abi-encoded address of the receiver.
     /// @return magicValue `bytes4(keccak256("onERC20Received(address,address,uint256,bytes)"))` (`0x4fc35859`) to accept, any other value to refuse.
-    function onERC20Received(
-        address,
-        address from,
-        uint256 value,
-        bytes calldata data
-    ) external returns (bytes4 magicValue) {
+    function onERC20Received(address, address from, uint256 value, bytes calldata data) external returns (bytes4 magicValue) {
         address receiver = from;
         if (data.length != 0) {
             (receiver) = abi.decode(data, (address));
@@ -93,21 +88,13 @@ abstract contract FxERC20ChildTunnel is FxBaseChildTunnel, FxTokenMapping, ERC20
     /// @param childToken The ERC20 child token which has previously been deployed as a mapping for a root token.
     /// @param receiver The account receiving the withdrawal.
     /// @param amount The amount of tokens to withdraw.
-    function withdrawTo(
-        address childToken,
-        address receiver,
-        uint256 amount
-    ) external {
+    function withdrawTo(address childToken, address receiver, uint256 amount) external {
         _withdrawFrom(childToken, _msgSender(), receiver, amount);
     }
 
     /// @notice Processes a message coming from the root chain.
     /// @dev Reverts with `FxERC20InvalidSyncType` if the sync type is not DEPOSIT or MAP_TOKEN.
-    function _processMessageFromRoot(
-        uint256, /* stateId */
-        address sender,
-        bytes memory data
-    ) internal override validateSender(sender) {
+    function _processMessageFromRoot(uint256 /* stateId */, address sender, bytes memory data) internal override validateSender(sender) {
         // decode incoming data
         (bytes32 syncType, bytes memory syncData) = abi.decode(data, (bytes32, bytes));
 
@@ -128,22 +115,13 @@ abstract contract FxERC20ChildTunnel is FxBaseChildTunnel, FxTokenMapping, ERC20
         _deposit(childToken, to, amount);
     }
 
-    function _withdraw(
-        address childToken,
-        address receiver,
-        uint256 amount
-    ) internal {
+    function _withdraw(address childToken, address receiver, uint256 amount) internal {
         address rootToken = _getMappedRootToken(childToken);
         _withdraw(childToken, amount);
         _sendMessageToRoot(abi.encode(rootToken, childToken, receiver, amount));
     }
 
-    function _withdrawFrom(
-        address childToken,
-        address withdrawer,
-        address receiver,
-        uint256 amount
-    ) internal {
+    function _withdrawFrom(address childToken, address withdrawer, address receiver, uint256 amount) internal {
         address rootToken = _getMappedRootToken(childToken);
         _withdrawFrom(childToken, withdrawer, amount);
         _sendMessageToRoot(abi.encode(rootToken, childToken, receiver, amount));
@@ -187,21 +165,13 @@ abstract contract FxERC20ChildTunnel is FxBaseChildTunnel, FxTokenMapping, ERC20
     /// @param rootToken The root token address.
     /// @param childToken The child token address.
     /// @param initArguments The abi-encoded child token initialization arguments.
-    function _initializeChildToken(
-        address rootToken,
-        address childToken,
-        bytes memory initArguments
-    ) internal virtual;
+    function _initializeChildToken(address rootToken, address childToken, bytes memory initArguments) internal virtual;
 
     /// @notice Deposits the tokens received from the root chain.
     /// @param childToken The child token address.
     /// @param receiver The deposit receiver address.
     /// @param amount The deposit amount.
-    function _deposit(
-        address childToken,
-        address receiver,
-        uint256 amount
-    ) internal virtual;
+    function _deposit(address childToken, address receiver, uint256 amount) internal virtual;
 
     /// @notice Withdraws tokens to the root chain when transferred to this contract via onERC20Received function.
     /// @dev When this function is called, this contract has already become the owner of the tokens.
@@ -214,9 +184,5 @@ abstract contract FxERC20ChildTunnel is FxBaseChildTunnel, FxTokenMapping, ERC20
     /// @param childToken The child token address.
     /// @param withdrawer The withdrawer address.
     /// @param amount The withdrawal amount.
-    function _withdrawFrom(
-        address childToken,
-        address withdrawer,
-        uint256 amount
-    ) internal virtual;
+    function _withdrawFrom(address childToken, address withdrawer, uint256 amount) internal virtual;
 }

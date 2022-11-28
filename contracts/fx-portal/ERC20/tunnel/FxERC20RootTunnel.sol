@@ -75,12 +75,7 @@ abstract contract FxERC20RootTunnel is FxBaseRootTunnel, FxTokenMapping, ERC20Re
     /// @param value The amount of tokens transferred.
     /// @param data Empty if the receiver is the same as the tokens sender, else the abi-encoded address of the receiver.
     /// @return magicValue `bytes4(keccak256("onERC20Received(address,address,uint256,bytes)"))` (`0x4fc35859`) to accept, any other value to refuse.
-    function onERC20Received(
-        address,
-        address from,
-        uint256 value,
-        bytes calldata data
-    ) external returns (bytes4 magicValue) {
+    function onERC20Received(address, address from, uint256 value, bytes calldata data) external returns (bytes4 magicValue) {
         address receiver = from;
         if (data.length != 0) {
             (receiver) = abi.decode(data, (address));
@@ -106,42 +101,23 @@ abstract contract FxERC20RootTunnel is FxBaseRootTunnel, FxTokenMapping, ERC20Re
     /// @param rootToken The ERC20 root token.
     /// @param receiver The account receiving the deposit.
     /// @param amount The amount of tokens to deposit.
-    function depositTo(
-        address rootToken,
-        address receiver,
-        uint256 amount
-    ) external {
+    function depositTo(address rootToken, address receiver, uint256 amount) external {
         _depositFrom(rootToken, _msgSender(), receiver, amount);
     }
 
-    function _deposit(
-        address rootToken,
-        address depositor,
-        address receiver,
-        uint256 amount
-    ) internal {
+    function _deposit(address rootToken, address depositor, address receiver, uint256 amount) internal {
         mapToken(rootToken);
         _deposit(rootToken, amount);
         _sendDepositRequest(rootToken, depositor, receiver, amount);
     }
 
-    function _depositFrom(
-        address rootToken,
-        address depositor,
-        address receiver,
-        uint256 amount
-    ) internal {
+    function _depositFrom(address rootToken, address depositor, address receiver, uint256 amount) internal {
         mapToken(rootToken);
         _depositFrom(rootToken, depositor, amount);
         _sendDepositRequest(rootToken, depositor, receiver, amount);
     }
 
-    function _sendDepositRequest(
-        address rootToken,
-        address depositor,
-        address receiver,
-        uint256 amount
-    ) internal {
+    function _sendDepositRequest(address rootToken, address depositor, address receiver, uint256 amount) internal {
         // DEPOSIT, encode(rootToken, depositor, user, amount)
         bytes memory message = abi.encode(DEPOSIT, abi.encode(rootToken, depositor, receiver, amount));
         _sendMessageToChild(message);
@@ -178,19 +154,11 @@ abstract contract FxERC20RootTunnel is FxBaseRootTunnel, FxTokenMapping, ERC20Re
     /// @param rootToken The root token address.
     /// @param depositor The depositor address.
     /// @param amount The token amount to deposit.
-    function _depositFrom(
-        address rootToken,
-        address depositor,
-        uint256 amount
-    ) internal virtual;
+    function _depositFrom(address rootToken, address depositor, uint256 amount) internal virtual;
 
     /// @notice Withdraws the tokens received from the child chain.
     /// @param rootToken The root token address.
     /// @param receiver The receiver address.
     /// @param amount The token amount to deposit.
-    function _withdraw(
-        address rootToken,
-        address receiver,
-        uint256 amount
-    ) internal virtual;
+    function _withdraw(address rootToken, address receiver, uint256 amount) internal virtual;
 }

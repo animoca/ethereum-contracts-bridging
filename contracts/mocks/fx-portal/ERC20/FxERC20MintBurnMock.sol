@@ -8,11 +8,7 @@ import {FxERC20MintBurn} from "./../../../fx-portal/ERC20/token/FxERC20MintBurn.
 contract FxERC20MintBurnMock is FxERC20MintBurn {
     using ERC20Storage for ERC20Storage.Layout;
 
-    constructor(
-        address[] memory holders,
-        uint256[] memory allocations,
-        IForwarderRegistry forwarderRegistry
-    ) FxERC20MintBurn(forwarderRegistry) {
+    constructor(address[] memory holders, uint256[] memory allocations, IForwarderRegistry forwarderRegistry) FxERC20MintBurn(forwarderRegistry) {
         ERC20Storage.layout().batchMint(holders, allocations);
     }
 

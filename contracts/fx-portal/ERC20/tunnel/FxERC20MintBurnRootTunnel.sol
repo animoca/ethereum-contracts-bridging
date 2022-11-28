@@ -39,21 +39,13 @@ contract FxERC20MintBurnRootTunnel is FxERC20RootTunnel {
 
     /// @inheritdoc FxERC20RootTunnel
     /// @notice Burns the deposit amount.
-    function _depositFrom(
-        address rootToken,
-        address depositor,
-        uint256 amount
-    ) internal virtual override {
+    function _depositFrom(address rootToken, address depositor, uint256 amount) internal virtual override {
         IERC20Burnable(rootToken).burnFrom(depositor, amount);
     }
 
     /// @inheritdoc FxERC20RootTunnel
     /// @notice Mints the withdrawal amount.
-    function _withdraw(
-        address rootToken,
-        address receiver,
-        uint256 amount
-    ) internal virtual override {
+    function _withdraw(address rootToken, address receiver, uint256 amount) internal virtual override {
         IERC20Mintable(rootToken).mint(receiver, amount);
     }
 }
