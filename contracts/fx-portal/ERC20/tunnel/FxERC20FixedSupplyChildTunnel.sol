@@ -19,11 +19,7 @@ contract FxERC20FixedSupplyChildTunnel is FxERC20ChildTunnel {
     ) FxERC20ChildTunnel(fxChild, childTokenLogic, forwarderRegistry) {}
 
     /// @inheritdoc FxERC20ChildTunnel
-    function _initializeChildToken(
-        address rootToken,
-        address childToken,
-        bytes memory initArguments
-    ) internal virtual override {
+    function _initializeChildToken(address rootToken, address childToken, bytes memory initArguments) internal virtual override {
         (uint256 totalSupply, string memory name, string memory symbol, uint8 decimals, string memory uri, address initialOwner) = abi.decode(
             initArguments,
             (uint256, string, string, uint8, string, address)
@@ -43,11 +39,7 @@ contract FxERC20FixedSupplyChildTunnel is FxERC20ChildTunnel {
 
     /// @inheritdoc FxERC20ChildTunnel
     /// @notice Unescrows the deposit amount from this contract.
-    function _deposit(
-        address childToken,
-        address receiver,
-        uint256 amount
-    ) internal virtual override {
+    function _deposit(address childToken, address receiver, uint256 amount) internal virtual override {
         IERC20(childToken).safeTransfer(receiver, amount);
     }
 
@@ -57,11 +49,7 @@ contract FxERC20FixedSupplyChildTunnel is FxERC20ChildTunnel {
 
     /// @inheritdoc FxERC20ChildTunnel
     /// @notice Escrows the withdrawal amount in this contract.
-    function _withdrawFrom(
-        address childToken,
-        address withdrawer,
-        uint256 amount
-    ) internal virtual override {
+    function _withdrawFrom(address childToken, address withdrawer, uint256 amount) internal virtual override {
         IERC20(childToken).safeTransferFrom(withdrawer, address(this), amount);
     }
 }

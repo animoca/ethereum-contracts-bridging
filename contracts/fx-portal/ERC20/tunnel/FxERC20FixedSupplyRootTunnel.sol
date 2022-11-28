@@ -39,21 +39,13 @@ contract FxERC20FixedSupplyRootTunnel is FxERC20RootTunnel {
 
     /// @inheritdoc FxERC20RootTunnel
     /// @notice Escrows the deposit amount in this contract.
-    function _depositFrom(
-        address rootToken,
-        address depositor,
-        uint256 amount
-    ) internal virtual override {
+    function _depositFrom(address rootToken, address depositor, uint256 amount) internal virtual override {
         IERC20(rootToken).safeTransferFrom(depositor, address(this), amount);
     }
 
     /// @inheritdoc FxERC20RootTunnel
     /// @notice Unescrows the withdrawal amount from this contract.
-    function _withdraw(
-        address rootToken,
-        address receiver,
-        uint256 amount
-    ) internal virtual override {
+    function _withdraw(address rootToken, address receiver, uint256 amount) internal virtual override {
         IERC20(rootToken).safeTransfer(receiver, amount);
     }
 }

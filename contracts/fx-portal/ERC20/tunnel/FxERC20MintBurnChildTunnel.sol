@@ -18,11 +18,7 @@ contract FxERC20MintBurnChildTunnel is FxERC20ChildTunnel {
     ) FxERC20ChildTunnel(fxChild, childTokenLogic, forwarderRegistry) {}
 
     /// @inheritdoc FxERC20ChildTunnel
-    function _initializeChildToken(
-        address rootToken,
-        address childToken,
-        bytes memory initArguments
-    ) internal virtual override {
+    function _initializeChildToken(address rootToken, address childToken, bytes memory initArguments) internal virtual override {
         (string memory name, string memory symbol, uint8 decimals, string memory uri, address initialOwner) = abi.decode(
             initArguments,
             (string, string, uint8, string, address)
@@ -41,11 +37,7 @@ contract FxERC20MintBurnChildTunnel is FxERC20ChildTunnel {
 
     /// @inheritdoc FxERC20ChildTunnel
     /// @notice Mints the deposit amount.
-    function _deposit(
-        address childToken,
-        address receiver,
-        uint256 amount
-    ) internal virtual override {
+    function _deposit(address childToken, address receiver, uint256 amount) internal virtual override {
         IERC20Mintable(childToken).mint(receiver, amount);
     }
 
@@ -57,11 +49,7 @@ contract FxERC20MintBurnChildTunnel is FxERC20ChildTunnel {
 
     /// @inheritdoc FxERC20ChildTunnel
     /// @notice Burns the withdrawal amount.
-    function _withdrawFrom(
-        address childToken,
-        address withdrawer,
-        uint256 amount
-    ) internal virtual override {
+    function _withdrawFrom(address childToken, address withdrawer, uint256 amount) internal virtual override {
         IERC20Burnable(childToken).burnFrom(withdrawer, amount);
     }
 }

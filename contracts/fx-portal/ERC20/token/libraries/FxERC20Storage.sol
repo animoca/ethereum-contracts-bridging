@@ -20,11 +20,7 @@ library FxERC20Storage {
     /// @dev Reverts if the proxy initialization phase is set to `1` or above.
     /// @param fxManager_ The FX manager.
     /// @param connectedToken_ The root token address.
-    function init(
-        Layout storage s,
-        address fxManager_,
-        address connectedToken_
-    ) internal {
+    function init(Layout storage s, address fxManager_, address connectedToken_) internal {
         ProxyInitialization.setPhase(PROXY_INIT_PHASE_SLOT, 1);
         s.manager = fxManager_;
         s.rootToken = connectedToken_;

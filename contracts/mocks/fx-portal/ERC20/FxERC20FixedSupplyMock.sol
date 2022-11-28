@@ -8,11 +8,7 @@ import {FxERC20FixedSupply} from "./../../../fx-portal/ERC20/token/FxERC20FixedS
 contract FxERC20FixedSupplyMock is FxERC20FixedSupply {
     using ERC20Storage for ERC20Storage.Layout;
 
-    constructor(
-        address[] memory holders,
-        uint256[] memory allocations,
-        IForwarderRegistry forwarderRegistry
-    ) FxERC20FixedSupply(forwarderRegistry) {
+    constructor(address[] memory holders, uint256[] memory allocations, IForwarderRegistry forwarderRegistry) FxERC20FixedSupply(forwarderRegistry) {
         ERC20Storage.layout().batchMint(holders, allocations);
     }
 
