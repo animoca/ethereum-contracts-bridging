@@ -103,10 +103,9 @@ abstract contract FxERC20RootTunnel is FxBaseRootTunnel, FxTokenMapping, FxERC20
     }
 
     function _deposit(address rootToken, address depositor, address receiver, uint256 amount) internal {
-        address childToken = mapToken(rootToken);
-        bytes memory message = abi.encode(DEPOSIT, abi.encode(rootToken, childToken, depositor, receiver, amount));
+        bytes memory message = abi.encode(DEPOSIT, abi.encode(rootToken, depositor, receiver, amount));
         _sendMessageToChild(message);
-        emit FxERC20Deposit(rootToken, childToken, depositor, receiver, amount);
+        emit FxERC20Deposit(rootToken, mapToken(rootToken), depositor, receiver, amount);
     }
 
     // exit processor

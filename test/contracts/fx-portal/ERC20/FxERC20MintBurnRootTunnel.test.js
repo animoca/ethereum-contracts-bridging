@@ -201,14 +201,8 @@ describe('FxERC20MintBurnRootTunnel', function () {
                   [
                     ethers.utils.id('DEPOSIT'),
                     ethers.utils.defaultAbiCoder.encode(
-                      ['address', 'address', 'address', 'address', 'uint256'],
-                      [
-                        this.rootToken.address,
-                        await this.contract.rootToChildToken(this.rootToken.address),
-                        deployer.address,
-                        this.recipient.address,
-                        depositAmount,
-                      ]
+                      ['address', 'address', 'address', 'uint256'],
+                      [this.rootToken.address, deployer.address, this.recipient.address, depositAmount]
                     ),
                   ]
                 ),
