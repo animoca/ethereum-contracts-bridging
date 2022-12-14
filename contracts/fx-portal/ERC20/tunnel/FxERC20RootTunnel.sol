@@ -7,37 +7,22 @@ import {Create2} from "@maticnetwork/fx-portal/contracts/lib/Create2.sol";
 import {ERC20Receiver} from "@animoca/ethereum-contracts/contracts/token/ERC20/ERC20Receiver.sol";
 import {FxBaseRootTunnel} from "@maticnetwork/fx-portal/contracts/tunnel/FxBaseRootTunnel.sol";
 import {FxTokenMapping} from "./../../FxTokenMapping.sol";
+import {FxERC20TunnelEvents} from "./../../FxERC20TunnelEvents.sol";
 import {ForwarderRegistryContext} from "@animoca/ethereum-contracts/contracts/metatx/ForwarderRegistryContext.sol";
 
 /// @title FxERC20RootTunnel
 /// @notice Base contract for an Fx root ERC20 tunnel.
-abstract contract FxERC20RootTunnel is FxBaseRootTunnel, FxTokenMapping, ERC20Receiver, Create2, ForwarderRegistryContext {
+abstract contract FxERC20RootTunnel is FxBaseRootTunnel, FxTokenMapping, FxERC20TunnelEvents, ERC20Receiver, Create2, ForwarderRegistryContext {
     bytes32 public immutable childTokenProxyCodeHash;
-
-    /// @notice Emitted when an ERC20 token has been mapped.
-    /// @param rootToken The root ERC20 token.
-    /// @param childToken The child ERC20 token.
-    event TokenMappedERC20(address indexed rootToken, address indexed childToken);
-
-    /// @notice Emitted when some ERC20 token has been withdrawn.
-    /// @param rootToken The root ERC20 token.
-    /// @param childToken The child ERC20 token.
-    /// @param userAddress The withdrawer address.
-    /// @param amount The withdrawal amount.
-    event FxWithdrawERC20(address indexed rootToken, address indexed childToken, address indexed userAddress, uint256 amount);
-
-    /// @notice Emitted when some ERC20 token has been deposited.
-    /// @param rootToken The root ERC20 token.
-    /// @param depositor The depositor address.
-    /// @param userAddress The recipient address.
-    /// @param amount The deposit amount.
-    event FxDepositERC20(address indexed rootToken, address indexed depositor, address indexed userAddress, uint256 amount);
 
     /// @notice Thrown when a deposit request refers to an invalid token mapping.
     /// @param childToken The child token.
     /// @param expectedRootToken The expected root token.
     /// @param actualRootToken The actual root token.
     error FxERC20InvalidMappingOnExit(address childToken, address expectedRootToken, address actualRootToken);
+
+    /// @notice Thrown if a deposit recipient is the zero address.
+    error FxERC20InvalidDepositAddress();
 
     constructor(
         address checkpointManager,
@@ -51,9 +36,10 @@ abstract contract FxERC20RootTunnel is FxBaseRootTunnel, FxTokenMapping, ERC20Re
 
     /// @notice Map a token to enable its movement via the Fx Portal
     /// @param rootToken address of token on root chain
-    function mapToken(address rootToken) public {
-        if (rootToChildToken[rootToken] != address(0x0)) {
-            return;
+    function mapToken(address rootToken) public returns (address childToken) {
+        childToken = rootToChildToken[rootToken];
+        if (childToken != address(0x0)) {
+            return childToken;
         }
 
         // send the mapping request to the child chain
@@ -61,11 +47,11 @@ abstract contract FxERC20RootTunnel is FxBaseRootTunnel, FxTokenMapping, ERC20Re
 
         // compute child token address before deployment using create2
         bytes32 salt = keccak256(abi.encodePacked(rootToken));
-        address childToken = computedCreate2Address(salt, childTokenProxyCodeHash, fxChildTunnel);
+        childToken = computedCreate2Address(salt, childTokenProxyCodeHash, fxChildTunnel);
 
         // add into mapped tokens
         rootToChildToken[rootToken] = childToken;
-        emit TokenMappedERC20(rootToken, childToken);
+        emit FxERC20TokenMapping(rootToken, childToken);
     }
 
     /// @notice Handles the receipt of ERC20 tokens as a deposit request.
@@ -79,8 +65,13 @@ abstract contract FxERC20RootTunnel is FxBaseRootTunnel, FxTokenMapping, ERC20Re
         address receiver = from;
         if (data.length != 0) {
             (receiver) = abi.decode(data, (address));
+            if (receiver == address(0)) {
+                revert FxERC20InvalidDepositAddress();
+            }
         }
         _deposit(msg.sender, from, receiver, value);
+        _depositReceivedTokens(msg.sender, value);
+
         return ERC20Storage.ERC20_RECEIVED;
     }
 
@@ -91,7 +82,8 @@ abstract contract FxERC20RootTunnel is FxBaseRootTunnel, FxTokenMapping, ERC20Re
     /// @param amount The amount of tokens to deposit.
     function deposit(address rootToken, uint256 amount) external {
         address depositor = _msgSender();
-        _depositFrom(rootToken, depositor, depositor, amount);
+        _deposit(rootToken, depositor, depositor, amount);
+        _depositTokensFrom(rootToken, depositor, amount);
     }
 
     /// @notice Deposits an `amount` of `rootToken` by the message sender and for a `receiver`.
@@ -102,31 +94,27 @@ abstract contract FxERC20RootTunnel is FxBaseRootTunnel, FxTokenMapping, ERC20Re
     /// @param receiver The account receiving the deposit.
     /// @param amount The amount of tokens to deposit.
     function depositTo(address rootToken, address receiver, uint256 amount) external {
-        _depositFrom(rootToken, _msgSender(), receiver, amount);
+        if (receiver == address(0)) {
+            revert FxERC20InvalidDepositAddress();
+        }
+        address depositor = _msgSender();
+        _deposit(rootToken, depositor, receiver, amount);
+        _depositTokensFrom(rootToken, depositor, amount);
     }
 
     function _deposit(address rootToken, address depositor, address receiver, uint256 amount) internal {
-        mapToken(rootToken);
-        _deposit(rootToken, amount);
-        _sendDepositRequest(rootToken, depositor, receiver, amount);
-    }
-
-    function _depositFrom(address rootToken, address depositor, address receiver, uint256 amount) internal {
-        mapToken(rootToken);
-        _depositFrom(rootToken, depositor, amount);
-        _sendDepositRequest(rootToken, depositor, receiver, amount);
-    }
-
-    function _sendDepositRequest(address rootToken, address depositor, address receiver, uint256 amount) internal {
-        // DEPOSIT, encode(rootToken, depositor, user, amount)
-        bytes memory message = abi.encode(DEPOSIT, abi.encode(rootToken, depositor, receiver, amount));
+        address childToken = mapToken(rootToken);
+        bytes memory message = abi.encode(DEPOSIT, abi.encode(rootToken, childToken, depositor, receiver, amount));
         _sendMessageToChild(message);
-        emit FxDepositERC20(rootToken, depositor, receiver, amount);
+        emit FxERC20Deposit(rootToken, childToken, depositor, receiver, amount);
     }
 
     // exit processor
     function _processMessageFromChild(bytes memory data) internal override {
-        (address rootToken, address childToken, address to, uint256 amount) = abi.decode(data, (address, address, address, uint256));
+        (address rootToken, address childToken, address withdrawer, address receiver, uint256 amount) = abi.decode(
+            data,
+            (address, address, address, address, uint256)
+        );
 
         // validate mapping for root to child
         address mappedChildToken = rootToChildToken[rootToken];
@@ -134,9 +122,9 @@ abstract contract FxERC20RootTunnel is FxBaseRootTunnel, FxTokenMapping, ERC20Re
             revert FxERC20InvalidMappingOnExit(rootToken, childToken, mappedChildToken);
         }
 
-        _withdraw(rootToken, to, amount);
+        _withdraw(rootToken, receiver, amount);
 
-        emit FxWithdrawERC20(rootToken, childToken, to, amount);
+        emit FxERC20Withdrawal(rootToken, childToken, withdrawer, receiver, amount);
     }
 
     /// @notice Returns the abi-encoded arguments for the Fx child token initialization function.
@@ -147,14 +135,14 @@ abstract contract FxERC20RootTunnel is FxBaseRootTunnel, FxTokenMapping, ERC20Re
     /// @dev When this function is called, this contract has already become the owner of the tokens.
     /// @param rootToken The root token address.
     /// @param amount The token amount to deposit.
-    function _deposit(address rootToken, uint256 amount) internal virtual;
+    function _depositReceivedTokens(address rootToken, uint256 amount) internal virtual;
 
     /// @notice Deposits tokens to the child chain from a withdrawer.
     /// @dev When this function is called, the withdrawer still owns the tokens.
     /// @param rootToken The root token address.
     /// @param depositor The depositor address.
     /// @param amount The token amount to deposit.
-    function _depositFrom(address rootToken, address depositor, uint256 amount) internal virtual;
+    function _depositTokensFrom(address rootToken, address depositor, uint256 amount) internal virtual;
 
     /// @notice Withdraws the tokens received from the child chain.
     /// @param rootToken The root token address.

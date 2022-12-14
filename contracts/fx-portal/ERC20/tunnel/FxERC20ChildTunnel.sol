@@ -7,24 +7,20 @@ import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import {ERC20Storage} from "@animoca/ethereum-contracts/contracts/token/ERC20/libraries/ERC20Storage.sol";
 import {FxBaseChildTunnel} from "@maticnetwork/fx-portal/contracts/tunnel/FxBaseChildTunnel.sol";
 import {FxTokenMapping} from "./../../FxTokenMapping.sol";
+import {FxERC20TunnelEvents} from "./../../FxERC20TunnelEvents.sol";
 import {ERC20Receiver} from "@animoca/ethereum-contracts/contracts/token/ERC20/ERC20Receiver.sol";
 import {Create2} from "@maticnetwork/fx-portal/contracts/lib/Create2.sol";
 import {ForwarderRegistryContext} from "@animoca/ethereum-contracts/contracts/metatx/ForwarderRegistryContext.sol";
 
 /// @title FxERC20ChildTunnel
 /// @notice Base contract for an Fx child ERC20 tunnel.
-abstract contract FxERC20ChildTunnel is FxBaseChildTunnel, FxTokenMapping, ERC20Receiver, Create2, ForwarderRegistryContext {
+abstract contract FxERC20ChildTunnel is FxBaseChildTunnel, FxTokenMapping, FxERC20TunnelEvents, ERC20Receiver, Create2, ForwarderRegistryContext {
     using Address for address;
 
     string public constant SUFFIX_NAME = " (Polygon)";
     string public constant PREFIX_SYMBOL = "p";
 
     address public immutable childTokenLogic;
-
-    /// @notice Emitted when an ERC20 token has been mapped.
-    /// @param rootToken The root ERC20 token.
-    /// @param childToken The child ERC20 token.
-    event TokenMapped(address indexed rootToken, address indexed childToken);
 
     /// @notice Thrown during construction if the provided child token logic address is not a deployed contract.
     error FxERC20ChildTokenLogicNotContract();
@@ -41,6 +37,9 @@ abstract contract FxERC20ChildTunnel is FxBaseChildTunnel, FxTokenMapping, ERC20
     /// @param syncType The unrecognized sync type.
     error FxERC20InvalidSyncType(bytes32 syncType);
 
+    /// @notice Thrown if a withdrawal recipient is the zero address.
+    error FxERC20InvalidWithdrawalAddress();
+
     /// @dev Reverts with `FxERC20ChildTokenLogicNotContract` if `childTokenLogic_` is not a contract.
     constructor(
         address fxChild,
@@ -55,6 +54,7 @@ abstract contract FxERC20ChildTunnel is FxBaseChildTunnel, FxTokenMapping, ERC20
 
     /// @notice Handles the receipt of ERC20 tokens as a withdrawal request.
     /// @dev Note: this function is called by an {ERC20SafeTransfer} contract after a safe transfer.
+    /// @dev Reverts with `FxERC20InvalidWithdrawalAddress` if `receiver` is encoded in `data` and is the zero address.
     /// @dev Reverts with `FxERC20TokenNotMapped` if the child token (msg.sender) has not been deployed through a mapping request.
     // @param operator The initiator of the safe transfer.
     /// @param from The previous tokens owner.
@@ -65,8 +65,12 @@ abstract contract FxERC20ChildTunnel is FxBaseChildTunnel, FxTokenMapping, ERC20
         address receiver = from;
         if (data.length != 0) {
             (receiver) = abi.decode(data, (address));
+            if (receiver == address(0)) {
+                revert FxERC20InvalidWithdrawalAddress();
+            }
         }
-        _withdraw(msg.sender, from, value);
+        _withdraw(msg.sender, from, receiver, value);
+        _withdrawReceivedTokens(msg.sender, value);
         return ERC20Storage.ERC20_RECEIVED;
     }
 
@@ -78,18 +82,25 @@ abstract contract FxERC20ChildTunnel is FxBaseChildTunnel, FxTokenMapping, ERC20
     /// @param amount The amount of tokens to withdraw.
     function withdraw(address childToken, uint256 amount) external {
         address withdrawer = _msgSender();
-        _withdrawFrom(childToken, withdrawer, withdrawer, amount);
+        _withdraw(childToken, withdrawer, withdrawer, amount);
+        _withdrawTokensFrom(childToken, withdrawer, amount);
     }
 
     /// @notice Requests the withdrawal of an `amount` of `childToken` by the message sender and for a `receiver`.
     /// @notice Note: Approval for `amount` of `childToken` must have been previously given to this contract.
+    /// @dev Reverts with `FxERC20InvalidWithdrawalAddress` if `receiver` is the zero address.
     /// @dev Reverts with `FxERC20TokenNotMapped` if `childToken` has not been deployed through a mapping request.
     /// @dev Reverts if the token transfer fails for any reason.
     /// @param childToken The ERC20 child token which has previously been deployed as a mapping for a root token.
     /// @param receiver The account receiving the withdrawal.
     /// @param amount The amount of tokens to withdraw.
     function withdrawTo(address childToken, address receiver, uint256 amount) external {
-        _withdrawFrom(childToken, _msgSender(), receiver, amount);
+        if (receiver == address(0)) {
+            revert FxERC20InvalidWithdrawalAddress();
+        }
+        address withdrawer = _msgSender();
+        _withdraw(childToken, withdrawer, receiver, amount);
+        _withdrawTokensFrom(childToken, withdrawer, amount);
     }
 
     /// @notice Processes a message coming from the root chain.
@@ -108,39 +119,30 @@ abstract contract FxERC20ChildTunnel is FxBaseChildTunnel, FxTokenMapping, ERC20
     }
 
     function _syncDeposit(bytes memory syncData) internal {
-        (address rootToken, address to, uint256 amount) = abi.decode(syncData, (address, address, uint256));
+        (address rootToken, address depositor, address receiver, uint256 amount) = abi.decode(syncData, (address, address, address, uint256));
         address childToken = rootToChildToken[rootToken];
 
         // deposit tokens
-        _deposit(childToken, to, amount);
+        _deposit(childToken, receiver, amount);
+
+        emit FxERC20Deposit(rootToken, childToken, depositor, receiver, amount);
     }
 
-    function _withdraw(address childToken, address receiver, uint256 amount) internal {
-        address rootToken = _getMappedRootToken(childToken);
-        _withdraw(childToken, amount);
-        _sendMessageToRoot(abi.encode(rootToken, childToken, receiver, amount));
-    }
-
-    function _withdrawFrom(address childToken, address withdrawer, address receiver, uint256 amount) internal {
-        address rootToken = _getMappedRootToken(childToken);
-        _withdrawFrom(childToken, withdrawer, amount);
-        _sendMessageToRoot(abi.encode(rootToken, childToken, receiver, amount));
-    }
-
-    function _getMappedRootToken(address childToken) internal returns (address rootToken) {
-        rootToken = IFxERC20(childToken).connectedToken();
-
-        // validate root and child token mapping
+    function _withdraw(address childToken, address withdrawer, address receiver, uint256 amount) internal {
+        address rootToken = IFxERC20(childToken).connectedToken();
         if (rootToken == address(0x0) || childToken != rootToChildToken[rootToken]) {
             revert FxERC20TokenNotMapped();
         }
+
+        _sendMessageToRoot(abi.encode(rootToken, childToken, withdrawer, receiver, amount));
+        emit FxERC20Withdrawal(rootToken, childToken, withdrawer, receiver, amount);
     }
 
-    function _mapToken(bytes memory syncData) internal returns (address) {
+    function _mapToken(bytes memory syncData) internal returns (address childToken) {
         (address rootToken, bytes memory initArguments) = abi.decode(syncData, (address, bytes));
 
         // get root to child token
-        address childToken = rootToChildToken[rootToken];
+        childToken = rootToChildToken[rootToken];
 
         // check if it's already mapped
         if (childToken != address(0)) {
@@ -155,10 +157,7 @@ abstract contract FxERC20ChildTunnel is FxBaseChildTunnel, FxTokenMapping, ERC20
 
         // map the token
         rootToChildToken[rootToken] = childToken;
-        emit TokenMapped(rootToken, childToken);
-
-        // return new child token
-        return childToken;
+        emit FxERC20TokenMapping(rootToken, childToken);
     }
 
     /// @notice Calls the initialization sequence of a child token.
@@ -177,12 +176,12 @@ abstract contract FxERC20ChildTunnel is FxBaseChildTunnel, FxTokenMapping, ERC20
     /// @dev When this function is called, this contract has already become the owner of the tokens.
     /// @param childToken The child token address.
     /// @param amount The withdrawal amount.
-    function _withdraw(address childToken, uint256 amount) internal virtual;
+    function _withdrawReceivedTokens(address childToken, uint256 amount) internal virtual;
 
     /// @notice Withdraws tokens to the root chain from a withdrawer.
     /// @dev When this function is called, the withdrawer still owns the tokens.
     /// @param childToken The child token address.
     /// @param withdrawer The withdrawer address.
     /// @param amount The withdrawal amount.
-    function _withdrawFrom(address childToken, address withdrawer, uint256 amount) internal virtual;
+    function _withdrawTokensFrom(address childToken, address withdrawer, uint256 amount) internal virtual;
 }

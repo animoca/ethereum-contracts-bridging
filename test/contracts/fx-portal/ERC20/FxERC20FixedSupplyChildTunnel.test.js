@@ -46,7 +46,10 @@ describe('FxERC20FixedSupplyChildTunnel', function () {
       ['bytes32', 'bytes'],
       [
         ethers.utils.id('DEPOSIT'),
-        ethers.utils.defaultAbiCoder.encode(['address', 'address', 'uint256'], [rootToken, deployer.address, depositAmount]),
+        ethers.utils.defaultAbiCoder.encode(
+          ['address', 'address', 'address', 'uint256'],
+          [rootToken, other.address, deployer.address, depositAmount]
+        ),
       ]
     );
   });
@@ -131,9 +134,9 @@ describe('FxERC20FixedSupplyChildTunnel', function () {
           expect(await childToken.owner()).to.equal(deployer.address);
         });
 
-        it('emits a TokenMapped event', async function () {
+        it('emits a FxERC20TokenMapping event', async function () {
           const childToken = await this.contract.rootToChildToken(rootToken);
-          await expect(this.receipt).to.emit(this.contract, 'TokenMapped').withArgs(rootToken, childToken);
+          await expect(this.receipt).to.emit(this.contract, 'FxERC20TokenMapping').withArgs(rootToken, childToken);
         });
       });
     });
@@ -147,6 +150,13 @@ describe('FxERC20FixedSupplyChildTunnel', function () {
       it('unescrows the deposit amount to the recipient', async function () {
         const childToken = (await ethers.getContractFactory('FxERC20FixedSupply')).attach(await this.contract.rootToChildToken(rootToken));
         await expect(this.receipt).to.emit(childToken, 'Transfer').withArgs(this.contract.address, deployer.address, depositAmount);
+      });
+
+      it('emits a FxEC20Deposit event', async function () {
+        const childTokenAddress = await this.contract.rootToChildToken(rootToken);
+        await expect(this.receipt)
+          .to.emit(this.contract, 'FxERC20Deposit')
+          .withArgs(rootToken, childTokenAddress, other.address, deployer.address, depositAmount);
       });
     });
   });
@@ -169,10 +179,17 @@ describe('FxERC20FixedSupplyChildTunnel', function () {
           .emit(this.contract, 'MessageSent')
           .withArgs(
             ethers.utils.defaultAbiCoder.encode(
-              ['address', 'address', 'address', 'uint256'],
-              [rootToken, childToken, deployer.address, withdrawalAmount]
+              ['address', 'address', 'address', 'address', 'uint256'],
+              [rootToken, childToken, deployer.address, this.recipient.address, withdrawalAmount]
             )
           );
+      });
+
+      it('emits a FxEC20Withdrawal event', async function () {
+        const childTokenAddress = await this.contract.rootToChildToken(rootToken);
+        await expect(this.receipt)
+          .to.emit(this.contract, 'FxERC20Withdrawal')
+          .withArgs(rootToken, childTokenAddress, deployer.address, this.recipient.address, withdrawalAmount);
       });
     }
 
@@ -195,6 +212,7 @@ describe('FxERC20FixedSupplyChildTunnel', function () {
         beforeEach(async function () {
           const childToken = (await ethers.getContractFactory('FxERC20FixedSupply')).attach(await this.contract.rootToChildToken(rootToken));
           await childToken.approve(this.contract.address, withdrawalAmount);
+          this.recipient = deployer;
           this.receipt = await this.contract.withdraw(childToken.address, withdrawalAmount);
         });
 
@@ -203,6 +221,14 @@ describe('FxERC20FixedSupplyChildTunnel', function () {
     });
 
     context('withdrawTo(address,address,uint256)', function () {
+      it('reverts if the withdrawal recipient is the zero address', async function () {
+        const childToken = (await ethers.getContractFactory('FxERC20FixedSupply')).attach(await this.contract.rootToChildToken(rootToken));
+        await expect(this.contract.withdrawTo(childToken.address, ZeroAddress, withdrawalAmount)).to.be.revertedWithCustomError(
+          this.contract,
+          'FxERC20InvalidWithdrawalAddress'
+        );
+      });
+
       it('reverts if the token is not mapped (zero address)', async function () {
         await expect(
           this.contract.withdrawTo(this.unmappedTokenToZeroAddress.address, deployer.address, withdrawalAmount)
@@ -219,7 +245,8 @@ describe('FxERC20FixedSupplyChildTunnel', function () {
         beforeEach(async function () {
           const childToken = (await ethers.getContractFactory('FxERC20FixedSupply')).attach(await this.contract.rootToChildToken(rootToken));
           await childToken.approve(this.contract.address, withdrawalAmount);
-          this.receipt = await this.contract.withdrawTo(childToken.address, deployer.address, withdrawalAmount);
+          this.recipient = other;
+          this.receipt = await this.contract.withdrawTo(childToken.address, this.recipient.address, withdrawalAmount);
         });
 
         withdraws();
@@ -244,6 +271,7 @@ describe('FxERC20FixedSupplyChildTunnel', function () {
       context('when successful', function () {
         beforeEach(async function () {
           const childToken = (await ethers.getContractFactory('FxERC20FixedSupply')).attach(await this.contract.rootToChildToken(rootToken));
+          this.recipient = deployer;
           this.receipt = await childToken.safeTransfer(this.contract.address, withdrawalAmount, EmptyByte);
         });
 
@@ -252,6 +280,13 @@ describe('FxERC20FixedSupplyChildTunnel', function () {
     });
 
     context('onERC20Received(address,address,uint256,bytes) encoded receiver', function () {
+      it('reverts if the withdrawal recipient is the zero address', async function () {
+        const childToken = (await ethers.getContractFactory('FxERC20FixedSupply')).attach(await this.contract.rootToChildToken(rootToken));
+        await expect(
+          childToken.safeTransfer(this.contract.address, withdrawalAmount, ethers.utils.defaultAbiCoder.encode(['address'], [ZeroAddress]))
+        ).to.be.revertedWithCustomError(this.contract, 'FxERC20InvalidWithdrawalAddress');
+      });
+
       it('reverts if the token is not mapped (zero address)', async function () {
         await expect(
           this.unmappedTokenToZeroAddress.safeTransfer(
@@ -275,10 +310,11 @@ describe('FxERC20FixedSupplyChildTunnel', function () {
       context('when successful', function () {
         beforeEach(async function () {
           const childToken = (await ethers.getContractFactory('FxERC20FixedSupply')).attach(await this.contract.rootToChildToken(rootToken));
+          this.recipient = other;
           this.receipt = await childToken.safeTransfer(
             this.contract.address,
             withdrawalAmount,
-            ethers.utils.defaultAbiCoder.encode(['address'], [deployer.address])
+            ethers.utils.defaultAbiCoder.encode(['address'], [this.recipient.address])
           );
         });
 

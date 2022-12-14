@@ -45,11 +45,11 @@ contract FxERC20FixedSupplyChildTunnel is FxERC20ChildTunnel {
 
     /// @inheritdoc FxERC20ChildTunnel
     /// @notice Tokens are already escrowed when coming through the onERC20Received function
-    function _withdraw(address childToken, uint256 amount) internal virtual override {}
+    function _withdrawReceivedTokens(address childToken, uint256 amount) internal virtual override {}
 
     /// @inheritdoc FxERC20ChildTunnel
     /// @notice Escrows the withdrawal amount in this contract.
-    function _withdrawFrom(address childToken, address withdrawer, uint256 amount) internal virtual override {
+    function _withdrawTokensFrom(address childToken, address withdrawer, uint256 amount) internal virtual override {
         IERC20(childToken).safeTransferFrom(withdrawer, address(this), amount);
     }
 }
