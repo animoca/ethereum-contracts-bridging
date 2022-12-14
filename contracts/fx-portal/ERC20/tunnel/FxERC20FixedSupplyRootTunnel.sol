@@ -35,11 +35,11 @@ contract FxERC20FixedSupplyRootTunnel is FxERC20RootTunnel {
 
     /// @inheritdoc FxERC20RootTunnel
     /// @notice Tokens are already escrowed when coming through the onERC20Received function
-    function _deposit(address rootToken, uint256 amount) internal virtual override {}
+    function _depositReceivedTokens(address rootToken, uint256 amount) internal virtual override {}
 
     /// @inheritdoc FxERC20RootTunnel
     /// @notice Escrows the deposit amount in this contract.
-    function _depositFrom(address rootToken, address depositor, uint256 amount) internal virtual override {
+    function _depositTokensFrom(address rootToken, address depositor, uint256 amount) internal virtual override {
         IERC20(rootToken).safeTransferFrom(depositor, address(this), amount);
     }
 

@@ -51,9 +51,9 @@ describe('FxERC20FixedSupplyRootTunnel', function () {
     });
 
     context('initial mapping request', function () {
-      it('emits a TokenMappedERC20 event', async function () {
+      it('emits a FxERC20TokenMapping event', async function () {
         const childToken = await this.contract.childToken(this.rootToken.address);
-        await expect(this.receipt).to.emit(this.contract, 'TokenMappedERC20').withArgs(this.rootToken.address, childToken);
+        await expect(this.receipt).to.emit(this.contract, 'FxERC20TokenMapping').withArgs(this.rootToken.address, childToken);
       });
 
       it('emits a StateSynced event', async function () {
@@ -98,8 +98,8 @@ describe('FxERC20FixedSupplyRootTunnel', function () {
       beforeEach(async function () {
         this.receipt = await this.contract.mapToken(this.rootToken.address);
       });
-      it('does not emit a TokenMappedERC20 event', async function () {
-        await expect(this.receipt).to.not.emit(this.contract, 'TokenMappedERC20');
+      it('does not emit a FxERC20TokenMapping event', async function () {
+        await expect(this.receipt).to.not.emit(this.contract, 'FxERC20TokenMapping');
       });
 
       it('does not emit a StateSynced event', async function () {
@@ -111,8 +111,8 @@ describe('FxERC20FixedSupplyRootTunnel', function () {
   describe('__processMessageFromChild(bytes) withdrawal', function () {
     it('reverts if the mapping is incorrect', async function () {
       const message = ethers.utils.defaultAbiCoder.encode(
-        ['address', 'address', 'address', 'uint256'],
-        [ZeroAddress, deployer.address, deployer.address, withdrawalAmount]
+        ['address', 'address', 'address', 'address', 'uint256'],
+        [ZeroAddress, deployer.address, deployer.address, deployer.address, withdrawalAmount]
       );
       await expect(this.contract.__processMessageFromChild(message))
         .to.be.revertedWithCustomError(this.contract, 'FxERC20InvalidMappingOnExit')
@@ -122,8 +122,8 @@ describe('FxERC20FixedSupplyRootTunnel', function () {
     context('when successful', function () {
       beforeEach(async function () {
         const message = ethers.utils.defaultAbiCoder.encode(
-          ['address', 'address', 'address', 'uint256'],
-          [this.rootToken.address, await this.contract.rootToChildToken(this.rootToken.address), deployer.address, withdrawalAmount]
+          ['address', 'address', 'address', 'address', 'uint256'],
+          [this.rootToken.address, await this.contract.rootToChildToken(this.rootToken.address), other.address, deployer.address, withdrawalAmount]
         );
         this.receipt = await this.contract.__processMessageFromChild(message);
       });
@@ -132,20 +132,26 @@ describe('FxERC20FixedSupplyRootTunnel', function () {
         await expect(this.receipt).to.emit(this.rootToken, 'Transfer').withArgs(this.contract.address, deployer.address, withdrawalAmount);
       });
 
-      it('emits a FxWithdrawERC20 event', async function () {
+      it('emits a FxERC20Withdrawal event', async function () {
         await expect(this.receipt)
-          .to.emit(this.contract, 'FxWithdrawERC20')
-          .withArgs(this.rootToken.address, await this.contract.rootToChildToken(this.rootToken.address), deployer.address, withdrawalAmount);
+          .to.emit(this.contract, 'FxERC20Withdrawal')
+          .withArgs(
+            this.rootToken.address,
+            await this.contract.rootToChildToken(this.rootToken.address),
+            other.address,
+            deployer.address,
+            withdrawalAmount
+          );
       });
     });
   });
 
   describe('deposit', function () {
     beforeEach(async function () {
-      this.receipt = await this.contract.mapToken(this.rootToken.address);
+      await this.contract.mapToken(this.rootToken.address);
       const message = ethers.utils.defaultAbiCoder.encode(
-        ['address', 'address', 'address', 'uint256'],
-        [this.rootToken.address, await this.contract.rootToChildToken(this.rootToken.address), deployer.address, withdrawalAmount]
+        ['address', 'address', 'address', 'address', 'uint256'],
+        [this.rootToken.address, await this.contract.rootToChildToken(this.rootToken.address), other.address, deployer.address, withdrawalAmount]
       );
       await this.contract.__processMessageFromChild(message);
     });
@@ -155,10 +161,16 @@ describe('FxERC20FixedSupplyRootTunnel', function () {
         await expect(this.receipt).to.emit(this.rootToken, 'Transfer').withArgs(deployer.address, this.contract.address, depositAmount);
       });
 
-      it('emits a FxDepositERC20 event', async function () {
+      it('emits a FxERC20Deposit event', async function () {
         await expect(this.receipt)
-          .to.emit(this.contract, 'FxDepositERC20')
-          .withArgs(this.rootToken.address, deployer.address, deployer.address, depositAmount);
+          .to.emit(this.contract, 'FxERC20Deposit')
+          .withArgs(
+            this.rootToken.address,
+            await this.contract.rootToChildToken(this.rootToken.address),
+            deployer.address,
+            this.recipient.address,
+            depositAmount
+          );
       });
 
       it('emits a StateSynced event', async function () {
@@ -178,7 +190,7 @@ describe('FxERC20FixedSupplyRootTunnel', function () {
                     ethers.utils.id('DEPOSIT'),
                     ethers.utils.defaultAbiCoder.encode(
                       ['address', 'address', 'address', 'uint256'],
-                      [this.rootToken.address, deployer.address, deployer.address, depositAmount]
+                      [this.rootToken.address, deployer.address, this.recipient.address, depositAmount]
                     ),
                   ]
                 ),
@@ -192,6 +204,7 @@ describe('FxERC20FixedSupplyRootTunnel', function () {
       context('when successful', function () {
         beforeEach(async function () {
           await this.rootToken.approve(this.contract.address, depositAmount);
+          this.recipient = deployer;
           this.receipt = await this.contract.deposit(this.rootToken.address, depositAmount);
         });
 
@@ -200,10 +213,18 @@ describe('FxERC20FixedSupplyRootTunnel', function () {
     });
 
     context('depositTo(address,address,uint256)', function () {
+      it('reverts if the deposit recipient is the zero address', async function () {
+        await expect(this.contract.depositTo(this.rootToken.address, ZeroAddress, depositAmount)).to.be.revertedWithCustomError(
+          this.contract,
+          'FxERC20InvalidDepositAddress'
+        );
+      });
+
       context('when successful', function () {
         beforeEach(async function () {
           await this.rootToken.approve(this.contract.address, depositAmount);
-          this.receipt = await this.contract.depositTo(this.rootToken.address, deployer.address, depositAmount);
+          this.recipient = other;
+          this.receipt = await this.contract.depositTo(this.rootToken.address, this.recipient.address, depositAmount);
         });
 
         deposits();
@@ -213,6 +234,7 @@ describe('FxERC20FixedSupplyRootTunnel', function () {
     context('onERC20Received(address,address,uint256,bytes) receiver is from', function () {
       context('when successful', function () {
         beforeEach(async function () {
+          this.recipient = deployer;
           this.receipt = await this.rootToken.safeTransfer(this.contract.address, depositAmount, EmptyByte);
         });
 
@@ -221,12 +243,19 @@ describe('FxERC20FixedSupplyRootTunnel', function () {
     });
 
     context('onERC20Received(address,address,uint256,bytes) encoded receiver', function () {
+      it('reverts if the deposit recipient is the zero address', async function () {
+        await expect(
+          this.rootToken.safeTransfer(this.contract.address, depositAmount, ethers.utils.defaultAbiCoder.encode(['address'], [ZeroAddress]))
+        ).to.be.revertedWithCustomError(this.contract, 'FxERC20InvalidDepositAddress');
+      });
+
       context('when successful', function () {
         beforeEach(async function () {
+          this.recipient = other;
           this.receipt = await this.rootToken.safeTransfer(
             this.contract.address,
             depositAmount,
-            ethers.utils.defaultAbiCoder.encode(['address'], [deployer.address])
+            ethers.utils.defaultAbiCoder.encode(['address'], [this.recipient.address])
           );
         });
 
