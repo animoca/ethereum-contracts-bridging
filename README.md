@@ -5,11 +5,10 @@
 
 Solidity contracts to manage bridging assets between blockchains.
 
-
 ## Audits
 
-| Date       | Scope        | Commit                                                                                                                                  | Package version                                                            | Auditor                             | Report                                                                                    |
-| ---------- | ------------ | --------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- | ----------------------------------- | ----------------------------------------------------------------------------------------- |
+| Date       | Scope                  | Commit                                                                                                                                           | Package version                                                                     | Auditor                                | Report                                                                                                                      |
+| ---------- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------- | -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
 | 14/11/2022 | Full library (FxERC20) | [ac07a577f4c6545f2543f793fea6d4ee7b1ea928](https://github.com/animoca/ethereum-contracts-bridging/tree/ac07a577f4c6545f2543f793fea6d4ee7b1ea928) | [0.1.2](https://www.npmjs.com/package/@animoca/ethereum-contracts-bridging/v/0.1.2) | [Halborn](https://https://halborn.com) | [link](/audit/Animoca_SHRD_CATA_ERC20_Tokens_Polygon_ERC20_Bridging_Smart_Contract_Security_Audit_Report_Halborn_Final.pdf) |
 
 ## Compilation artifacts
