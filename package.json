@@ -1,6 +1,6 @@
 {
   "name": "@animoca/ethereum-contracts-bridging",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Solidity assets bridging contracts",
   "author": "Animoca Brands",
   "license": "MIT",
@@ -46,7 +46,7 @@
     "prepack": "run-s clean:artifacts:hard compile clean"
   },
   "devDependencies": {
-    "@animoca/ethereum-contracts": "=0.3.3",
+    "@animoca/ethereum-contracts": "=0.3.4",
     "@maticnetwork/fx-portal": "=1.0.5",
     "@nomicfoundation/hardhat-chai-matchers": "^1.0.5",
     "@nomicfoundation/hardhat-network-helpers": "^1.0.7",
