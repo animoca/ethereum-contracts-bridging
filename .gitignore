@@ -4,6 +4,11 @@ node_modules/
 .yalc
 yalc.lock
 
+.yarn/*
+!.yarn/releases
+!.yarn/plugins
+.pnp.*
+
 .vscode/*
 !.vscode/settings.json.default
 !.vscode/launch.json.default
