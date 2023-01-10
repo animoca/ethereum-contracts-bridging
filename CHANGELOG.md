@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.4
+
+### Improvements
+
+- Do not include audit reports in the node package.
+
 ## 0.1.3
 
 ### Bugfixes

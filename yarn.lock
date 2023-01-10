@@ -9,7 +9,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@animoca/ethereum-contracts-bridging@workspace:."
   dependencies:
-    "@animoca/ethereum-contracts": =0.3.3
+    "@animoca/ethereum-contracts": =0.3.4
     "@maticnetwork/fx-portal": =1.0.5
     "@nomicfoundation/hardhat-chai-matchers": ^1.0.5
     "@nomicfoundation/hardhat-network-helpers": ^1.0.7
@@ -43,10 +43,10 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@animoca/ethereum-contracts@npm:=0.3.3":
-  version: 0.3.3
-  resolution: "@animoca/ethereum-contracts@npm:0.3.3"
-  checksum: 428fecaf1bbb8492aa9d285a01e2d0a95e573f4a93c0e4f8991935b01a9b0ad205a9b773482f162a6372a20acf36336ebebaaaaa88c560c2cd378761f47806b3
+"@animoca/ethereum-contracts@npm:=0.3.4":
+  version: 0.3.4
+  resolution: "@animoca/ethereum-contracts@npm:0.3.4"
+  checksum: 36d5ea64aadab29595655c9a8aa73bbaf71fe94e7a1602ecec7f9cbdf8536406ae348d451927652b62fcbdb0ed454ea7eba0ecd5dfd5c3c32a3399e545fb5951
   languageName: node
   linkType: hard
 
