@@ -1,9 +1,9 @@
 const {ethers} = require('hardhat');
 const {expect} = require('chai');
-const {EmptyByte, ZeroAddress} = require('@animoca/ethereum-contracts/src/constants');
-const {getForwarderRegistryAddress} = require('@animoca/ethereum-contracts/test/helpers/run');
-const {loadFixture} = require('@animoca/ethereum-contracts/test/helpers/fixtures');
-const {deployContract} = require('@animoca/ethereum-contracts/test/helpers/contract');
+const {constants} = ethers;
+const {loadFixture} = require('@animoca/ethereum-contract-helpers/src/test/fixtures');
+const {deployContract} = require('@animoca/ethereum-contract-helpers/src/test/deploy');
+const {getForwarderRegistryAddress} = require('@animoca/ethereum-contracts/test/helpers/registries');
 
 const initialSupply = 1234;
 const tokenName = 'name';
@@ -29,7 +29,7 @@ describe('FxERC20FixedSupplyRootTunnel', function () {
     this.fxRoot = await deployContract('FxRootMock', this.stateSender.address);
     this.contract = await deployContract(
       'FxERC20FixedSupplyRootTunnelMock',
-      ZeroAddress,
+      constants.AddressZero,
       this.fxRoot.address,
       this.fxERC20Logic.address,
       forwarderRegistryAddress
@@ -66,7 +66,7 @@ describe('FxERC20FixedSupplyRootTunnel', function () {
               ['address', 'address', 'bytes'],
               [
                 this.contract.address,
-                ZeroAddress,
+                constants.AddressZero,
                 ethers.utils.defaultAbiCoder.encode(
                   ['bytes32', 'bytes'],
                   [
@@ -112,11 +112,11 @@ describe('FxERC20FixedSupplyRootTunnel', function () {
     it('reverts if the mapping is incorrect', async function () {
       const message = ethers.utils.defaultAbiCoder.encode(
         ['address', 'address', 'address', 'address', 'uint256'],
-        [ZeroAddress, deployer.address, deployer.address, deployer.address, withdrawalAmount]
+        [constants.AddressZero, deployer.address, deployer.address, deployer.address, withdrawalAmount]
       );
       await expect(this.contract.__processMessageFromChild(message))
         .to.be.revertedWithCustomError(this.contract, 'FxERC20InvalidMappingOnExit')
-        .withArgs(ZeroAddress, deployer.address, ZeroAddress);
+        .withArgs(constants.AddressZero, deployer.address, constants.AddressZero);
     });
 
     context('when successful', function () {
@@ -183,7 +183,7 @@ describe('FxERC20FixedSupplyRootTunnel', function () {
               ['address', 'address', 'bytes'],
               [
                 this.contract.address,
-                ZeroAddress,
+                constants.AddressZero,
                 ethers.utils.defaultAbiCoder.encode(
                   ['bytes32', 'bytes'],
                   [
@@ -214,7 +214,7 @@ describe('FxERC20FixedSupplyRootTunnel', function () {
 
     context('depositTo(address,address,uint256)', function () {
       it('reverts if the deposit recipient is the zero address', async function () {
-        await expect(this.contract.depositTo(this.rootToken.address, ZeroAddress, depositAmount)).to.be.revertedWithCustomError(
+        await expect(this.contract.depositTo(this.rootToken.address, constants.AddressZero, depositAmount)).to.be.revertedWithCustomError(
           this.contract,
           'FxERC20InvalidDepositAddress'
         );
@@ -235,7 +235,7 @@ describe('FxERC20FixedSupplyRootTunnel', function () {
       context('when successful', function () {
         beforeEach(async function () {
           this.recipient = deployer;
-          this.receipt = await this.rootToken.safeTransfer(this.contract.address, depositAmount, EmptyByte);
+          this.receipt = await this.rootToken.safeTransfer(this.contract.address, depositAmount, '0x');
         });
 
         deposits();
@@ -245,7 +245,7 @@ describe('FxERC20FixedSupplyRootTunnel', function () {
     context('onERC20Received(address,address,uint256,bytes) encoded receiver', function () {
       it('reverts if the deposit recipient is the zero address', async function () {
         await expect(
-          this.rootToken.safeTransfer(this.contract.address, depositAmount, ethers.utils.defaultAbiCoder.encode(['address'], [ZeroAddress]))
+          this.rootToken.safeTransfer(this.contract.address, depositAmount, ethers.utils.defaultAbiCoder.encode(['address'], [constants.AddressZero]))
         ).to.be.revertedWithCustomError(this.contract, 'FxERC20InvalidDepositAddress');
       });
 

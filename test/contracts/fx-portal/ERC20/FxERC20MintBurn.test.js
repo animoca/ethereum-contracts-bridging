@@ -1,15 +1,17 @@
 const {expect} = require('chai');
 const {ethers} = require('hardhat');
+const {constants} = ethers;
+const {runBehaviorTests} = require('@animoca/ethereum-contract-helpers/src/test/run');
+const {getDeployerAddress} = require('@animoca/ethereum-contract-helpers/src/test/accounts');
+const {getForwarderRegistryAddress} = require('@animoca/ethereum-contracts/test/helpers/registries');
 const {behavesLikeERC20} = require('@animoca/ethereum-contracts/test/contracts/token/ERC20/behaviors/ERC20.behavior');
-const {getDeployerAddress, getForwarderRegistryAddress, runBehaviorTests} = require('@animoca/ethereum-contracts/test//helpers/run');
-const {ZeroAddress} = require('@animoca/ethereum-contracts/src/constants');
 
 const name = 'FxERC20MintBurn';
 const symbol = 'FxERC20MintBurn';
 const decimals = ethers.BigNumber.from('18');
 const tokenURI = 'test';
 
-const connectedToken = ZeroAddress;
+const connectedToken = constants.AddressZero;
 
 const config = {
   immutable: {

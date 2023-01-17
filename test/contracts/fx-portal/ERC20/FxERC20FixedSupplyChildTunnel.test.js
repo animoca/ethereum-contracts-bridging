@@ -1,9 +1,9 @@
 const {ethers} = require('hardhat');
 const {expect} = require('chai');
-const {EmptyByte, ZeroAddress} = require('@animoca/ethereum-contracts/src/constants');
-const {getForwarderRegistryAddress} = require('@animoca/ethereum-contracts/test/helpers/run');
-const {loadFixture} = require('@animoca/ethereum-contracts/test/helpers/fixtures');
-const {deployContract} = require('@animoca/ethereum-contracts/test/helpers/contract');
+const {constants} = ethers;
+const {loadFixture} = require('@animoca/ethereum-contract-helpers/src/test/fixtures');
+const {deployContract} = require('@animoca/ethereum-contract-helpers/src/test/deploy');
+const {getForwarderRegistryAddress} = require('@animoca/ethereum-contracts/test/helpers/registries');
 
 const rootToken = '0x0000000000000000000000000000000000000001';
 const rootTokenWrongMapping = '0x0000000000000000000000000000000000000002';
@@ -65,7 +65,7 @@ describe('FxERC20FixedSupplyChildTunnel', function () {
       [withdrawalAmount],
       forwarderRegistryAddress
     );
-    await this.unmappedTokenToZeroAddress.initialize(this.contract.address, ZeroAddress, initialSupply, '', '', 18, '', deployer.address);
+    await this.unmappedTokenToZeroAddress.initialize(this.contract.address, constants.AddressZero, initialSupply, '', '', 18, '', deployer.address);
     this.unmappedTokenToWrongAddress = await deployContract(
       'FxERC20FixedSupplyMock',
       [deployer.address],
@@ -96,7 +96,7 @@ describe('FxERC20FixedSupplyChildTunnel', function () {
     });
 
     it('reverts if the sender argument is not the FxRootTunnel', async function () {
-      await expect(this.contract.processMessageFromRoot(0, ZeroAddress, mappingMessage)).to.be.revertedWith(
+      await expect(this.contract.processMessageFromRoot(0, constants.AddressZero, mappingMessage)).to.be.revertedWith(
         'FxBaseChildTunnel: INVALID_SENDER_FROM_ROOT'
       );
     });
@@ -223,7 +223,7 @@ describe('FxERC20FixedSupplyChildTunnel', function () {
     context('withdrawTo(address,address,uint256)', function () {
       it('reverts if the withdrawal recipient is the zero address', async function () {
         const childToken = (await ethers.getContractFactory('FxERC20FixedSupply')).attach(await this.contract.rootToChildToken(rootToken));
-        await expect(this.contract.withdrawTo(childToken.address, ZeroAddress, withdrawalAmount)).to.be.revertedWithCustomError(
+        await expect(this.contract.withdrawTo(childToken.address, constants.AddressZero, withdrawalAmount)).to.be.revertedWithCustomError(
           this.contract,
           'FxERC20InvalidWithdrawalAddress'
         );
@@ -255,14 +255,14 @@ describe('FxERC20FixedSupplyChildTunnel', function () {
 
     context('onERC20Received(address,address,uint256,bytes) receiver is from', function () {
       it('reverts if the token is not mapped (zero address)', async function () {
-        await expect(this.unmappedTokenToZeroAddress.safeTransfer(this.contract.address, withdrawalAmount, EmptyByte)).to.be.revertedWithCustomError(
+        await expect(this.unmappedTokenToZeroAddress.safeTransfer(this.contract.address, withdrawalAmount, '0x')).to.be.revertedWithCustomError(
           this.contract,
           'FxERC20TokenNotMapped'
         );
       });
 
       it('reverts if the token is not mapped (wrong mapping)', async function () {
-        await expect(this.unmappedTokenToWrongAddress.safeTransfer(this.contract.address, withdrawalAmount, EmptyByte)).to.be.revertedWithCustomError(
+        await expect(this.unmappedTokenToWrongAddress.safeTransfer(this.contract.address, withdrawalAmount, '0x')).to.be.revertedWithCustomError(
           this.contract,
           'FxERC20TokenNotMapped'
         );
@@ -272,7 +272,7 @@ describe('FxERC20FixedSupplyChildTunnel', function () {
         beforeEach(async function () {
           const childToken = (await ethers.getContractFactory('FxERC20FixedSupply')).attach(await this.contract.rootToChildToken(rootToken));
           this.recipient = deployer;
-          this.receipt = await childToken.safeTransfer(this.contract.address, withdrawalAmount, EmptyByte);
+          this.receipt = await childToken.safeTransfer(this.contract.address, withdrawalAmount, '0x');
         });
 
         withdraws();
@@ -283,7 +283,7 @@ describe('FxERC20FixedSupplyChildTunnel', function () {
       it('reverts if the withdrawal recipient is the zero address', async function () {
         const childToken = (await ethers.getContractFactory('FxERC20FixedSupply')).attach(await this.contract.rootToChildToken(rootToken));
         await expect(
-          childToken.safeTransfer(this.contract.address, withdrawalAmount, ethers.utils.defaultAbiCoder.encode(['address'], [ZeroAddress]))
+          childToken.safeTransfer(this.contract.address, withdrawalAmount, ethers.utils.defaultAbiCoder.encode(['address'], [constants.AddressZero]))
         ).to.be.revertedWithCustomError(this.contract, 'FxERC20InvalidWithdrawalAddress');
       });
 

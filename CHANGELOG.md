@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.0
+
+### Improvements
+
+- Update to latest dependencies.
+- Fix versioning rules.
+
 ## 0.1.4
 
 ### Improvements
