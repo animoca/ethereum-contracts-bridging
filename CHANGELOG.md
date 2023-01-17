@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.0
+
+- Replace 0.2.0 mistakenly published as 0.2.4.
+
 ## 0.2.0
 
 ### Improvements
