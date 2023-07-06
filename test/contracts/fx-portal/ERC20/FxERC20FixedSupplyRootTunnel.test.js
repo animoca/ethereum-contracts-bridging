@@ -35,9 +35,15 @@ describe('FxERC20FixedSupplyRootTunnel', function () {
       forwarderRegistryAddress
     );
 
-    this.rootToken = await deployContract('ERC20Mock', tokenName, tokenSymbol, decimals, forwarderRegistryAddress);
-    await this.rootToken.grantRole(await this.rootToken.MINTER_ROLE(), deployer.address);
-    await this.rootToken.mint(this.contract.address, initialSupply);
+    this.rootToken = await deployContract(
+      'ERC20FixedSupply',
+      tokenName,
+      tokenSymbol,
+      decimals,
+      [this.contract.address],
+      [initialSupply],
+      forwarderRegistryAddress
+    );
     await this.rootToken.setTokenURI(tokenURI);
   };
 

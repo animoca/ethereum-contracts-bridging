@@ -35,7 +35,7 @@ describe('FxERC20MintBurnRootTunnel', function () {
       forwarderRegistryAddress
     );
 
-    this.rootToken = await deployContract('ERC20BurnableMock', tokenName, tokenSymbol, decimals, forwarderRegistryAddress);
+    this.rootToken = await deployContract('ERC20MintBurn', tokenName, tokenSymbol, decimals, forwarderRegistryAddress);
     await this.rootToken.grantRole(await this.rootToken.MINTER_ROLE(), deployer.address);
     await this.rootToken.mint(this.contract.address, initialSupply);
     await this.rootToken.setTokenURI(tokenURI);
