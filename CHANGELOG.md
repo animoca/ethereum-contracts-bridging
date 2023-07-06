@@ -4,7 +4,7 @@
 
 ### Breaking changes
 
-- Upgraded to `@openzeppelin/contracts@4.9.1`.
+- Upgraded to `@openzeppelin/contracts@4.9.2`.
 - Upgraded to `solc@0.8.19`.
 - Upgraded to `@animoca/ethereum-contracts@2.0.0`.
 
