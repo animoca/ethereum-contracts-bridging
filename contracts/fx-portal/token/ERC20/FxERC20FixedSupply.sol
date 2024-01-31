@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
 import {IForwarderRegistry} from "@animoca/ethereum-contracts/contracts/metatx/interfaces/IForwarderRegistry.sol";
 import {IFxERC20FixedSupply} from "./interfaces/IFxERC20FixedSupply.sol";
@@ -22,7 +22,7 @@ contract FxERC20FixedSupply is FxERC20, IFxERC20FixedSupply {
         uint8 tokenDecimals,
         string calldata uri,
         address initialOwner
-    ) external {
+    ) public {
         init(fxManager_, connectedToken_, tokenName, tokenSymbol, tokenDecimals, uri, initialOwner);
         ERC20Storage.layout().mint(fxManager_, totalSupply);
     }

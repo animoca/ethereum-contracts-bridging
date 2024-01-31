@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
 import {IStateSender} from "@maticnetwork/fx-portal/contracts/FxRoot.sol";
 

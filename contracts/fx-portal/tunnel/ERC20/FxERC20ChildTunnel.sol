@@ -20,7 +20,7 @@ abstract contract FxERC20ChildTunnel is FxBaseChildTunnel, FxTokenMapping, FxERC
     string public constant SUFFIX_NAME = " (Polygon)";
     string public constant PREFIX_SYMBOL = "p";
 
-    address public immutable childTokenLogic;
+    address public immutable CHILD_TOKEN_LOGIC;
 
     /// @notice Thrown during construction if the provided child token logic address is not a deployed contract.
     error FxERC20ChildTokenLogicNotContract();
@@ -40,16 +40,16 @@ abstract contract FxERC20ChildTunnel is FxBaseChildTunnel, FxTokenMapping, FxERC
     /// @notice Thrown if a withdrawal recipient is the zero address.
     error FxERC20InvalidWithdrawalAddress();
 
-    /// @dev Reverts with `FxERC20ChildTokenLogicNotContract` if `childTokenLogic_` is not a contract.
+    /// @dev Reverts with `FxERC20ChildTokenLogicNotContract` if `CHILD_TOKEN_LOGIC_` is not a contract.
     constructor(
         address fxChild,
-        address childTokenLogic_,
+        address childTokenLogic,
         IForwarderRegistry forwarderRegistry
     ) FxBaseChildTunnel(fxChild) ForwarderRegistryContext(forwarderRegistry) {
-        if (!childTokenLogic_.isContract()) {
+        if (!childTokenLogic.isContract()) {
             revert FxERC20ChildTokenLogicNotContract();
         }
-        childTokenLogic = childTokenLogic_;
+        CHILD_TOKEN_LOGIC = childTokenLogic;
     }
 
     /// @notice Handles the receipt of ERC20 tokens as a withdrawal request.
@@ -151,7 +151,7 @@ abstract contract FxERC20ChildTunnel is FxBaseChildTunnel, FxTokenMapping, FxERC
 
         // deploy new child token
         bytes32 salt = keccak256(abi.encodePacked(rootToken));
-        childToken = createClone(salt, childTokenLogic);
+        childToken = createClone(salt, CHILD_TOKEN_LOGIC);
 
         _initializeChildToken(rootToken, childToken, initArguments);
 

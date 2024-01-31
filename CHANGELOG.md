@@ -1,5 +1,18 @@
 # Changelog
 
+## 2.0.0
+
+### Breaking changes
+
+- Upgraded to `@openzeppelin/contracts@4.9.3`.
+- Upgraded to `solc@0.8.22`.
+- Upgraded to `@animoca/ethereum-contracts@3.1.0`.
+
+### Improvements
+
+- Updated to latest dependencies.
+
+
 ## 1.0.0
 
 ### Breaking changes

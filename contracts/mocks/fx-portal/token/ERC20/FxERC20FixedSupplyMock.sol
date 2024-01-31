@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.19;
+pragma solidity 0.8.22;
 
 import {IForwarderRegistry} from "@animoca/ethereum-contracts/contracts/metatx/interfaces/IForwarderRegistry.sol";
 import {ERC20Storage} from "@animoca/ethereum-contracts/contracts/token/ERC20/libraries/ERC20Storage.sol";
@@ -8,7 +8,9 @@ import {FxERC20FixedSupply} from "./../../../../fx-portal/token/ERC20/FxERC20Fix
 contract FxERC20FixedSupplyMock is FxERC20FixedSupply {
     using ERC20Storage for ERC20Storage.Layout;
 
-    constructor(address[] memory holders, uint256[] memory allocations, IForwarderRegistry forwarderRegistry) FxERC20FixedSupply(forwarderRegistry) {
+    constructor(IForwarderRegistry forwarderRegistry) FxERC20FixedSupply(forwarderRegistry) {}
+
+    function allocate(address[] calldata holders, uint256[] calldata allocations) external {
         ERC20Storage.layout().batchMint(holders, allocations);
     }
 

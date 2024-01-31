@@ -13,7 +13,7 @@ import {ForwarderRegistryContext} from "@animoca/ethereum-contracts/contracts/me
 /// @title FxERC20RootTunnel
 /// @notice Base contract for an Fx root ERC20 tunnel.
 abstract contract FxERC20RootTunnel is FxBaseRootTunnel, FxTokenMapping, FxERC20TunnelEvents, ERC20Receiver, Create2, ForwarderRegistryContext {
-    bytes32 public immutable childTokenProxyCodeHash;
+    bytes32 public immutable CHILD_TOKEN_PROXY_CODEHASH;
 
     /// @notice Thrown when a deposit request refers to an invalid token mapping.
     /// @param childToken The child token.
@@ -31,7 +31,7 @@ abstract contract FxERC20RootTunnel is FxBaseRootTunnel, FxTokenMapping, FxERC20
         IForwarderRegistry forwarderRegistry
     ) FxBaseRootTunnel(checkpointManager, fxRoot) ForwarderRegistryContext(forwarderRegistry) {
         // compute child token proxy code hash
-        childTokenProxyCodeHash = keccak256(minimalProxyCreationCode(fxERC20Token));
+        CHILD_TOKEN_PROXY_CODEHASH = keccak256(minimalProxyCreationCode(fxERC20Token));
     }
 
     /// @notice Map a token to enable its movement via the Fx Portal
@@ -47,7 +47,7 @@ abstract contract FxERC20RootTunnel is FxBaseRootTunnel, FxTokenMapping, FxERC20
 
         // compute child token address before deployment using create2
         bytes32 salt = keccak256(abi.encodePacked(rootToken));
-        childToken = computedCreate2Address(salt, childTokenProxyCodeHash, fxChildTunnel);
+        childToken = computedCreate2Address(salt, CHILD_TOKEN_PROXY_CODEHASH, fxChildTunnel);
 
         // add into mapped tokens
         rootToChildToken[rootToken] = childToken;
