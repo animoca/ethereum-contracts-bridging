@@ -46,6 +46,11 @@
       "type": "error"
     },
     {
+      "inputs": [],
+      "name": "IllegalInterfaceId",
+      "type": "error"
+    },
+    {
       "anonymous": false,
       "inputs": [
         {

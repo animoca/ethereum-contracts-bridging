@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.19;
+pragma solidity 0.8.28;
 
 import {IFxERC20} from "./../../token/ERC20/interfaces/IFxERC20.sol";
 import {IFxERC20FixedSupply} from "./../../token/ERC20/interfaces/IFxERC20FixedSupply.sol";

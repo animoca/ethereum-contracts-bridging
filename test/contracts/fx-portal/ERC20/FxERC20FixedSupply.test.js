@@ -1,6 +1,5 @@
 const {expect} = require('chai');
 const {ethers} = require('hardhat');
-const {constants} = ethers;
 const {runBehaviorTests} = require('@animoca/ethereum-contract-helpers/src/test/run');
 const {getDeployerAddress} = require('@animoca/ethereum-contract-helpers/src/test/accounts');
 const {getForwarderRegistryAddress} = require('@animoca/ethereum-contracts/test/helpers/registries');
@@ -8,10 +7,10 @@ const {behavesLikeERC20} = require('@animoca/ethereum-contracts/test/contracts/t
 
 const name = 'FxERC20FixedSupply';
 const symbol = 'FxERC20FixedSupply';
-const decimals = ethers.BigNumber.from('18');
+const decimals = 18n;
 const tokenURI = 'test';
 
-const connectedToken = constants.AddressZero;
+const connectedToken = ethers.ZeroAddress;
 
 const config = {
   immutable: {
@@ -34,33 +33,32 @@ runBehaviorTests('FxERC20FixedSupply', config, function (deployFn) {
     symbol,
     decimals,
     tokenURI,
-    revertMessages: {
+    errors: {
       // ERC20
-      ApproveToZero: 'ERC20: approval to address(0)',
-      TransferExceedsBalance: 'ERC20: insufficient balance',
-      TransferToZero: 'ERC20: transfer to address(0)',
-      TransferExceedsAllowance: 'ERC20: insufficient allowance',
-      InconsistentArrays: 'ERC20: inconsistent arrays',
-      SupplyOverflow: 'ERC20: supply overflow',
+      ApprovalToAddressZero: {custom: true, error: 'ERC20ApprovalToAddressZero', args: ['owner']},
+      TransferToAddressZero: {custom: true, error: 'ERC20TransferToAddressZero', args: ['owner']},
+      TransferExceedsBalance: {custom: true, error: 'ERC20InsufficientBalance', args: ['owner', 'balance', 'value']},
+      TransferExceedsAllowance: {custom: true, error: 'ERC20InsufficientAllowance', args: ['owner', 'spender', 'allowance', 'value']},
 
       // ERC20Allowance
-      AllowanceUnderflow: 'ERC20: insufficient allowance',
-      AllowanceOverflow: 'ERC20: allowance overflow',
+      AllowanceUnderflow: {custom: true, error: 'ERC20InsufficientAllowance', args: ['owner', 'spender', 'allowance', 'decrement']},
+      AllowanceOverflow: {custom: true, error: 'ERC20AllowanceOverflow', args: ['owner', 'spender', 'allowance', 'increment']},
 
       // ERC20BatchTransfers
-      BatchTransferValuesOverflow: 'ERC20: values overflow',
+      BatchTransferValuesOverflow: {custom: true, error: 'ERC20BatchTransferValuesOverflow'},
 
       // ERC20SafeTransfers
-      SafeTransferRejected: 'ERC20: safe transfer rejected',
+      SafeTransferRejected: {custom: true, error: 'ERC20SafeTransferRejected', args: ['recipient']},
 
       // ERC2612
-      PermitFromZero: 'ERC20: permit from address(0)',
-      PermitExpired: 'ERC20: expired permit',
-      PermitInvalid: 'ERC20: invalid permit',
+      PermitFromAddressZero: {custom: true, error: 'ERC20PermitFromAddressZero'},
+      PermitExpired: {custom: true, error: 'ERC20PermitExpired', args: ['deadline']},
+      PermitInvalid: {custom: true, error: 'ERC20PermitInvalidSignature'},
 
-      // Admin
-      NotMinter: "AccessControl: missing 'minter' role",
-      NotContractOwner: 'Ownership: not the owner',
+      // Misc
+      InconsistentArrayLengths: {custom: true, error: 'InconsistentArrayLengths'},
+      NotMinter: {custom: true, error: 'NotRoleHolder', args: ['role', 'account']},
+      NotContractOwner: {custom: true, error: 'NotContractOwner', args: ['account']},
     },
     features: {
       // ERC165: true,

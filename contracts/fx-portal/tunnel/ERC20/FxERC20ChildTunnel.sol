@@ -3,7 +3,7 @@ pragma solidity ^0.8.8;
 
 import {IFxERC20} from "./../../token/ERC20/interfaces/IFxERC20.sol";
 import {IForwarderRegistry} from "@animoca/ethereum-contracts/contracts/metatx/interfaces/IForwarderRegistry.sol";
-import {Address} from "@openzeppelin/contracts/utils/Address.sol";
+import {Address} from "@animoca/ethereum-contracts/contracts/utils/libraries/Address.sol";
 import {ERC20Storage} from "@animoca/ethereum-contracts/contracts/token/ERC20/libraries/ERC20Storage.sol";
 import {FxBaseChildTunnel} from "@maticnetwork/fx-portal/contracts/tunnel/FxBaseChildTunnel.sol";
 import {FxTokenMapping} from "./../FxTokenMapping.sol";
@@ -46,7 +46,7 @@ abstract contract FxERC20ChildTunnel is FxBaseChildTunnel, FxTokenMapping, FxERC
         address childTokenLogic_,
         IForwarderRegistry forwarderRegistry
     ) FxBaseChildTunnel(fxChild) ForwarderRegistryContext(forwarderRegistry) {
-        if (!childTokenLogic_.isContract()) {
+        if (!childTokenLogic_.hasBytecode()) {
             revert FxERC20ChildTokenLogicNotContract();
         }
         childTokenLogic = childTokenLogic_;

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.19;
+pragma solidity 0.8.28;
 
 import {IForwarderRegistry} from "@animoca/ethereum-contracts/contracts/metatx/interfaces/IForwarderRegistry.sol";
 import {FxERC20FixedSupplyRootTunnel} from "./../../../../fx-portal/tunnel/ERC20/FxERC20FixedSupplyRootTunnel.sol";
