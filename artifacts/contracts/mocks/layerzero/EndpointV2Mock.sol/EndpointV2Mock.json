@@ -1,0 +1,24 @@
+{
+  "_format": "hh-sol-artifact-1",
+  "contractName": "EndpointV2Mock",
+  "sourceName": "contracts/mocks/layerzero/EndpointV2Mock.sol",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_delegate",
+          "type": "address"
+        }
+      ],
+      "name": "setDelegate",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "bytecode": "0x6080604052348015600f57600080fd5b5060ae80601d6000396000f3fe6080604052348015600f57600080fd5b506004361060285760003560e01c8063ca5eb5e114602d575b600080fd5b603b6038366004603d565b50565b005b600060208284031215604e57600080fd5b813573ffffffffffffffffffffffffffffffffffffffff81168114607157600080fd5b939250505056fea264697066735822122034437a380122ad91d9fa776c7ba72e327d3982ad287cd439641287db452f662564736f6c634300081c0033",
+  "deployedBytecode": "0x6080604052348015600f57600080fd5b506004361060285760003560e01c8063ca5eb5e114602d575b600080fd5b603b6038366004603d565b50565b005b600060208284031215604e57600080fd5b813573ffffffffffffffffffffffffffffffffffffffff81168114607157600080fd5b939250505056fea264697066735822122034437a380122ad91d9fa776c7ba72e327d3982ad287cd439641287db452f662564736f6c634300081c0033",
+  "linkReferences": {},
+  "deployedLinkReferences": {}
+}

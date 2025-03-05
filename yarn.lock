@@ -20,10 +20,10 @@
     lodash.mergewith "^4.6.2"
     npm-run-all "^4.1.5"
 
-"@animoca/ethereum-contracts@=4.0.0":
-  version "4.0.0"
-  resolved "https://registry.yarnpkg.com/@animoca/ethereum-contracts/-/ethereum-contracts-4.0.0.tgz#76ff622f61c5ff8396ac205c94eeba41dc6dfa8c"
-  integrity sha512-XJZx6dF4KauJ0UUk1gLDdTnEKdoGFCt6ztrHNDZaJmbupUAsEPY+U/LhGkW3ZkJIKz56AMqlVM9NAHiO83Faow==
+"@animoca/ethereum-contracts@=4.1.1":
+  version "4.1.1"
+  resolved "https://registry.yarnpkg.com/@animoca/ethereum-contracts/-/ethereum-contracts-4.1.1.tgz#d1e56a0c2d18786c99ec7e4edbf5e6ba09c966b4"
+  integrity sha512-aL3UOfC+3EuwXsbj0Gm8vBU4yKAnkU6nxi8DGoRI6OFIje98ZsH+6XPxomX2EM+cMpgvPff3GSPb8fjcxGi4+w==
 
 "@babel/code-frame@^7.0.0":
   version "7.26.2"
@@ -842,6 +842,23 @@
     strip-ansi-cjs "npm:strip-ansi@^6.0.1"
     wrap-ansi "^8.1.0"
     wrap-ansi-cjs "npm:wrap-ansi@^7.0.0"
+
+"@layerzerolabs/lz-evm-protocol-v2@^3.0.74":
+  version "3.0.74"
+  resolved "https://registry.yarnpkg.com/@layerzerolabs/lz-evm-protocol-v2/-/lz-evm-protocol-v2-3.0.74.tgz#a2124b9731b5fda489e357dee1f2ea1b47463620"
+  integrity sha512-iICrEM4im1Nh2bGalee0Z0h5wEINPB+fS9pjbyIoN2jFhOVjjoML2mbidwptFeyg6A6P+AhZ4o5P6nCEC5glqA==
+
+"@layerzerolabs/oapp-evm@^0.3.1":
+  version "0.3.1"
+  resolved "https://registry.yarnpkg.com/@layerzerolabs/oapp-evm/-/oapp-evm-0.3.1.tgz#79ebeba4f9a9b1b72e0674775ce4e9e027303d1b"
+  integrity sha512-SOuvqy1s+tWwgixR+hw5d9izS8z2tiO8XwGddlnSte24e9lxnOrqwMaOdIJt0GorTJk5rdUgrMlBW0HVwYMZDw==
+  dependencies:
+    ethers "^5.7.2"
+
+"@layerzerolabs/oft-evm@^3.1.2":
+  version "3.1.2"
+  resolved "https://registry.yarnpkg.com/@layerzerolabs/oft-evm/-/oft-evm-3.1.2.tgz#599056728ea065038092084ba490579f8e88de55"
+  integrity sha512-2aqbnZW8SuLzhSBpQEraEl4LJYi97oNqxg5GTWoIvQNebQ/qkbppEs6kaEQxFqgo+I78v6Vu3SB7XIwpvG7K/w==
 
 "@maticnetwork/fx-portal@=1.0.5":
   version "1.0.5"
@@ -2525,7 +2542,7 @@ ethereumjs-util@^7.1.4:
     ethereum-cryptography "^0.1.3"
     rlp "^2.2.4"
 
-ethers@^5.7.0:
+ethers@^5.7.0, ethers@^5.7.2:
   version "5.8.0"
   resolved "https://registry.yarnpkg.com/ethers/-/ethers-5.8.0.tgz#97858dc4d4c74afce83ea7562fe9493cedb4d377"
   integrity sha512-DUq+7fHrCg1aPDFCHx6UIPb3nmt2XMpM7Y/g2gLhsl3lIBqeAfOJIl1qEvRf2uq3BiKxmh6Fh5pfp2ieyek7Kg==
