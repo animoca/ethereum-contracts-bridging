@@ -46,6 +46,11 @@
       "type": "error"
     },
     {
+      "inputs": [],
+      "name": "IllegalInterfaceId",
+      "type": "error"
+    },
+    {
       "anonymous": false,
       "inputs": [
         {
@@ -153,6 +158,19 @@
     },
     {
       "inputs": [],
+      "name": "CHILD_TOKEN_LOGIC",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
       "name": "DEPOSIT",
       "outputs": [
         {
@@ -198,19 +216,6 @@
           "internalType": "string",
           "name": "",
           "type": "string"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "childTokenLogic",
-      "outputs": [
-        {
-          "internalType": "address",
-          "name": "",
-          "type": "address"
         }
       ],
       "stateMutability": "view",

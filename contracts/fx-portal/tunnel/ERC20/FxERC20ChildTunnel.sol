@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.8;
+pragma solidity ^0.8.28;
 
 import {IFxERC20} from "./../../token/ERC20/interfaces/IFxERC20.sol";
 import {IForwarderRegistry} from "@animoca/ethereum-contracts/contracts/metatx/interfaces/IForwarderRegistry.sol";
-import {Address} from "@openzeppelin/contracts/utils/Address.sol";
+import {Address} from "@animoca/ethereum-contracts/contracts/utils/libraries/Address.sol";
 import {ERC20Storage} from "@animoca/ethereum-contracts/contracts/token/ERC20/libraries/ERC20Storage.sol";
 import {FxBaseChildTunnel} from "@maticnetwork/fx-portal/contracts/tunnel/FxBaseChildTunnel.sol";
 import {FxTokenMapping} from "./../FxTokenMapping.sol";
@@ -20,7 +20,7 @@ abstract contract FxERC20ChildTunnel is FxBaseChildTunnel, FxTokenMapping, FxERC
     string public constant SUFFIX_NAME = " (Polygon)";
     string public constant PREFIX_SYMBOL = "p";
 
-    address public immutable childTokenLogic;
+    address public immutable CHILD_TOKEN_LOGIC;
 
     /// @notice Thrown during construction if the provided child token logic address is not a deployed contract.
     error FxERC20ChildTokenLogicNotContract();
@@ -46,10 +46,10 @@ abstract contract FxERC20ChildTunnel is FxBaseChildTunnel, FxTokenMapping, FxERC
         address childTokenLogic_,
         IForwarderRegistry forwarderRegistry
     ) FxBaseChildTunnel(fxChild) ForwarderRegistryContext(forwarderRegistry) {
-        if (!childTokenLogic_.isContract()) {
+        if (!childTokenLogic_.hasBytecode()) {
             revert FxERC20ChildTokenLogicNotContract();
         }
-        childTokenLogic = childTokenLogic_;
+        CHILD_TOKEN_LOGIC = childTokenLogic_;
     }
 
     /// @notice Handles the receipt of ERC20 tokens as a withdrawal request.
@@ -151,7 +151,7 @@ abstract contract FxERC20ChildTunnel is FxBaseChildTunnel, FxTokenMapping, FxERC
 
         // deploy new child token
         bytes32 salt = keccak256(abi.encodePacked(rootToken));
-        childToken = createClone(salt, childTokenLogic);
+        childToken = createClone(salt, CHILD_TOKEN_LOGIC);
 
         _initializeChildToken(rootToken, childToken, initArguments);
 

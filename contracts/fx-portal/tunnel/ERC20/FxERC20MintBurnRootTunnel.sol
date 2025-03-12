@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.19;
+pragma solidity 0.8.28;
 
 import {IERC173} from "@animoca/ethereum-contracts/contracts/access/interfaces/IERC173.sol";
 import {IERC20Detailed} from "@animoca/ethereum-contracts/contracts/token/ERC20/interfaces/IERC20Detailed.sol";

@@ -1,5 +1,23 @@
 # Changelog
 
+## 2.0.0
+
+### Breaking changes
+
+- Upgraded to `@openzeppelin/contracts@5.2.0`.
+- Upgraded to `solc@0.8.28`.
+- Upgraded to `@animoca/ethereum-contracts@4.0.0`.
+- Changed public variables casing for `FxERC20ChildTunnel`.`CHILD_TOKEN_LOGIC` and `FxERC20RootTunnel`.`CHILD_TOKEN_PROXY_CODE_HASH`.
+
+### New features
+
+- Added LayerZero OFT adapter `OFTAdapterFixedSupply` to be used with `ERC20FixedSupply` preset.
+- Added LayerZero OFT adapter `OFTAdapterMintBurn` to be used with `ERC20MintBurn` preset.
+
+### Improvements
+
+- Updated to latest dependencies.
+
 ## 1.0.0
 
 ### Breaking changes

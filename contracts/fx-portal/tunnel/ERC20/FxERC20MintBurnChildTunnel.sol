@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.19;
+pragma solidity 0.8.28;
 
-import {IFxERC20} from "./../../token/ERC20/interfaces/IFxERC20.sol";
 import {IFxERC20MintBurn} from "./../../token/ERC20/interfaces/IFxERC20MintBurn.sol";
 import {IERC20Mintable} from "@animoca/ethereum-contracts/contracts/token/ERC20/interfaces/IERC20Mintable.sol";
 import {IERC20Burnable} from "@animoca/ethereum-contracts/contracts/token/ERC20/interfaces/IERC20Burnable.sol";

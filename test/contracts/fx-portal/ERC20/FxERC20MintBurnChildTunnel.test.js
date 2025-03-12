@@ -1,6 +1,5 @@
 const {ethers} = require('hardhat');
 const {expect} = require('chai');
-const {constants} = ethers;
 const {loadFixture} = require('@animoca/ethereum-contract-helpers/src/test/fixtures');
 const {deployContract} = require('@animoca/ethereum-contract-helpers/src/test/deploy');
 const {getForwarderRegistryAddress} = require('@animoca/ethereum-contracts/test/helpers/registries');
@@ -24,32 +23,32 @@ describe('FxERC20MintBurnChildTunnel', function () {
   before(async function () {
     [deployer, other] = await ethers.getSigners();
 
-    mappingMessage = ethers.utils.defaultAbiCoder.encode(
+    mappingMessage = ethers.AbiCoder.defaultAbiCoder().encode(
       ['bytes32', 'bytes'],
       [
-        ethers.utils.id('MAP_TOKEN'),
-        ethers.utils.defaultAbiCoder.encode(
+        ethers.id('MAP_TOKEN'),
+        ethers.AbiCoder.defaultAbiCoder().encode(
           ['address', 'bytes'],
           [
             rootToken,
-            ethers.utils.defaultAbiCoder.encode(
+            ethers.AbiCoder.defaultAbiCoder().encode(
               ['string', 'string', 'uint8', 'string', 'address'],
-              [tokenName, tokenSymbol, 18, tokenURI, deployer.address]
+              [tokenName, tokenSymbol, 18, tokenURI, deployer.address],
             ),
-          ]
+          ],
         ),
-      ]
+      ],
     );
 
-    depositMessage = ethers.utils.defaultAbiCoder.encode(
+    depositMessage = ethers.AbiCoder.defaultAbiCoder().encode(
       ['bytes32', 'bytes'],
       [
-        ethers.utils.id('DEPOSIT'),
-        ethers.utils.defaultAbiCoder.encode(
+        ethers.id('DEPOSIT'),
+        ethers.AbiCoder.defaultAbiCoder().encode(
           ['address', 'address', 'address', 'uint256'],
-          [rootToken, other.address, deployer.address, depositAmount]
+          [rootToken, other.address, deployer.address, depositAmount],
         ),
-      ]
+      ],
     );
   });
 
@@ -57,11 +56,16 @@ describe('FxERC20MintBurnChildTunnel', function () {
     const forwarderRegistryAddress = await getForwarderRegistryAddress();
 
     this.fxERC20Logic = await deployContract('FxERC20MintBurn', forwarderRegistryAddress);
-    this.contract = await deployContract('FxERC20MintBurnChildTunnel', deployer.address, this.fxERC20Logic.address, forwarderRegistryAddress);
+    this.contract = await deployContract(
+      'FxERC20MintBurnChildTunnel',
+      deployer.address,
+      await this.fxERC20Logic.getAddress(),
+      forwarderRegistryAddress,
+    );
     this.unmappedTokenToZeroAddress = await deployContract('FxERC20MintBurnMock', [deployer.address], [withdrawalAmount], forwarderRegistryAddress);
-    await this.unmappedTokenToZeroAddress.initialize(this.contract.address, constants.AddressZero, '', '', 18, '', deployer.address);
+    await this.unmappedTokenToZeroAddress.initialize(await this.contract.getAddress(), ethers.ZeroAddress, '', '', 18, '', deployer.address);
     this.unmappedTokenToWrongAddress = await deployContract('FxERC20MintBurnMock', [deployer.address], [withdrawalAmount], forwarderRegistryAddress);
-    await this.unmappedTokenToWrongAddress.initialize(this.contract.address, rootTokenWrongMapping, '', '', 18, '', deployer.address);
+    await this.unmappedTokenToWrongAddress.initialize(await this.contract.getAddress(), rootTokenWrongMapping, '', '', 18, '', deployer.address);
     await this.contract.setFxRootTunnel(deployer.address);
   };
 
@@ -72,7 +76,7 @@ describe('FxERC20MintBurnChildTunnel', function () {
   describe('constructor', function () {
     it('reverts if the ERC20 logic address is not a contract', async function () {
       await expect(
-        deployContract('FxERC20MintBurnChildTunnel', deployer.address, deployer.address, await getForwarderRegistryAddress())
+        deployContract('FxERC20MintBurnChildTunnel', deployer.address, deployer.address, await getForwarderRegistryAddress()),
       ).to.be.revertedWithCustomError(this.contract, 'FxERC20ChildTokenLogicNotContract');
     });
   });
@@ -80,19 +84,19 @@ describe('FxERC20MintBurnChildTunnel', function () {
   describe('processMessageFromRoot(uint256,address,bytes)', function () {
     it('reverts if not sent by the fxChild', async function () {
       await expect(this.contract.connect(other).processMessageFromRoot(0, deployer.address, mappingMessage)).to.be.revertedWith(
-        'FxBaseChildTunnel: INVALID_SENDER'
+        'FxBaseChildTunnel: INVALID_SENDER',
       );
     });
 
     it('reverts if the sender argument is not the FxRootTunnel', async function () {
-      await expect(this.contract.processMessageFromRoot(0, constants.AddressZero, mappingMessage)).to.be.revertedWith(
-        'FxBaseChildTunnel: INVALID_SENDER_FROM_ROOT'
+      await expect(this.contract.processMessageFromRoot(0, ethers.ZeroAddress, mappingMessage)).to.be.revertedWith(
+        'FxBaseChildTunnel: INVALID_SENDER_FROM_ROOT',
       );
     });
 
     it('reverts with an invalid sync type', async function () {
-      const invalidSyncType = ethers.utils.id('WRONG');
-      const message = ethers.utils.defaultAbiCoder.encode(['bytes32', 'bytes'], [invalidSyncType, ethers.utils.toUtf8Bytes('')]);
+      const invalidSyncType = ethers.id('WRONG');
+      const message = ethers.AbiCoder.defaultAbiCoder().encode(['bytes32', 'bytes'], [invalidSyncType, ethers.toUtf8Bytes('')]);
       await expect(this.contract.processMessageFromRoot(0, deployer.address, message))
         .to.be.revertedWithCustomError(this.contract, 'FxERC20InvalidSyncType')
         .withArgs(invalidSyncType);
@@ -133,13 +137,13 @@ describe('FxERC20MintBurnChildTunnel', function () {
       beforeEach(async function () {
         await this.contract.processMessageFromRoot(0, deployer.address, mappingMessage);
         const childToken = (await ethers.getContractFactory('FxERC20MintBurn')).attach(await this.contract.rootToChildToken(rootToken));
-        await childToken.grantRole(await childToken.MINTER_ROLE(), this.contract.address);
+        await childToken.grantRole(await childToken.MINTER_ROLE(), await this.contract.getAddress());
         this.receipt = await this.contract.processMessageFromRoot(0, deployer.address, depositMessage);
       });
 
       it('mints the deposit amount to the recipient', async function () {
         const childToken = (await ethers.getContractFactory('FxERC20MintBurn')).attach(await this.contract.rootToChildToken(rootToken));
-        await expect(this.receipt).to.emit(childToken, 'Transfer').withArgs(constants.AddressZero, deployer.address, depositAmount);
+        await expect(this.receipt).to.emit(childToken, 'Transfer').withArgs(ethers.ZeroAddress, deployer.address, depositAmount);
       });
 
       it('emits a FxEC20Deposit event', async function () {
@@ -155,7 +159,7 @@ describe('FxERC20MintBurnChildTunnel', function () {
     beforeEach(async function () {
       await this.contract.processMessageFromRoot(0, deployer.address, mappingMessage);
       const childToken = (await ethers.getContractFactory('FxERC20MintBurn')).attach(await this.contract.rootToChildToken(rootToken));
-      await childToken.grantRole(await childToken.MINTER_ROLE(), this.contract.address);
+      await childToken.grantRole(await childToken.MINTER_ROLE(), await this.contract.getAddress());
       await this.contract.processMessageFromRoot(0, deployer.address, depositMessage);
     });
 
@@ -163,16 +167,20 @@ describe('FxERC20MintBurnChildTunnel', function () {
       if (fromReceiverInterface) {
         it('transfers the withdrawal amount to the tunnel', async function () {
           const childToken = (await ethers.getContractFactory('FxERC20MintBurn')).attach(await this.contract.rootToChildToken(rootToken));
-          await expect(this.receipt).to.emit(childToken, 'Transfer').withArgs(deployer.address, this.contract.address, withdrawalAmount);
+          await expect(this.receipt)
+            .to.emit(childToken, 'Transfer')
+            .withArgs(deployer.address, await this.contract.getAddress(), withdrawalAmount);
         });
         it('burns the withdrawal amount', async function () {
           const childToken = (await ethers.getContractFactory('FxERC20MintBurn')).attach(await this.contract.rootToChildToken(rootToken));
-          await expect(this.receipt).to.emit(childToken, 'Transfer').withArgs(this.contract.address, constants.AddressZero, withdrawalAmount);
+          await expect(this.receipt)
+            .to.emit(childToken, 'Transfer')
+            .withArgs(await this.contract.getAddress(), ethers.ZeroAddress, withdrawalAmount);
         });
       } else {
         it('directly burns the withdrawal amount', async function () {
           const childToken = (await ethers.getContractFactory('FxERC20MintBurn')).attach(await this.contract.rootToChildToken(rootToken));
-          await expect(this.receipt).to.emit(childToken, 'Transfer').withArgs(deployer.address, constants.AddressZero, withdrawalAmount);
+          await expect(this.receipt).to.emit(childToken, 'Transfer').withArgs(deployer.address, ethers.ZeroAddress, withdrawalAmount);
         });
       }
 
@@ -181,10 +189,10 @@ describe('FxERC20MintBurnChildTunnel', function () {
         await expect(this.receipt)
           .emit(this.contract, 'MessageSent')
           .withArgs(
-            ethers.utils.defaultAbiCoder.encode(
+            ethers.AbiCoder.defaultAbiCoder().encode(
               ['address', 'address', 'address', 'address', 'uint256'],
-              [rootToken, childToken, deployer.address, this.recipient.address, withdrawalAmount]
-            )
+              [rootToken, childToken, deployer.address, this.recipient.address, withdrawalAmount],
+            ),
           );
       });
 
@@ -198,25 +206,25 @@ describe('FxERC20MintBurnChildTunnel', function () {
 
     context('withdraw(address,uint256)', function () {
       it('reverts if the token is not mapped (zero address)', async function () {
-        await expect(this.contract.withdraw(this.unmappedTokenToZeroAddress.address, withdrawalAmount)).to.be.revertedWithCustomError(
+        await expect(this.contract.withdraw(await this.unmappedTokenToZeroAddress.getAddress(), withdrawalAmount)).to.be.revertedWithCustomError(
           this.contract,
-          'FxERC20TokenNotMapped'
+          'FxERC20TokenNotMapped',
         );
       });
 
       it('reverts if the token is not mapped (wrong mapping)', async function () {
-        await expect(this.contract.withdraw(this.unmappedTokenToWrongAddress.address, withdrawalAmount)).to.be.revertedWithCustomError(
+        await expect(this.contract.withdraw(await this.unmappedTokenToWrongAddress.getAddress(), withdrawalAmount)).to.be.revertedWithCustomError(
           this.contract,
-          'FxERC20TokenNotMapped'
+          'FxERC20TokenNotMapped',
         );
       });
 
       context('when successful', function () {
         beforeEach(async function () {
           const childToken = (await ethers.getContractFactory('FxERC20MintBurn')).attach(await this.contract.rootToChildToken(rootToken));
-          await childToken.approve(this.contract.address, withdrawalAmount);
+          await childToken.approve(await this.contract.getAddress(), withdrawalAmount);
           this.recipient = deployer;
-          this.receipt = await this.contract.withdraw(childToken.address, withdrawalAmount);
+          this.receipt = await this.contract.withdraw(await childToken.getAddress(), withdrawalAmount);
         });
 
         withdraws(false);
@@ -226,30 +234,30 @@ describe('FxERC20MintBurnChildTunnel', function () {
     context('withdrawTo(address,uint256)', function () {
       it('reverts if the withdrawal recipient is the zero address', async function () {
         const childToken = (await ethers.getContractFactory('FxERC20FixedSupply')).attach(await this.contract.rootToChildToken(rootToken));
-        await expect(this.contract.withdrawTo(childToken.address, constants.AddressZero, withdrawalAmount)).to.be.revertedWithCustomError(
+        await expect(this.contract.withdrawTo(await childToken.getAddress(), ethers.ZeroAddress, withdrawalAmount)).to.be.revertedWithCustomError(
           this.contract,
-          'FxERC20InvalidWithdrawalAddress'
+          'FxERC20InvalidWithdrawalAddress',
         );
       });
 
       it('reverts if the token is not mapped (zero address)', async function () {
         await expect(
-          this.contract.withdrawTo(this.unmappedTokenToZeroAddress.address, deployer.address, withdrawalAmount)
+          this.contract.withdrawTo(await this.unmappedTokenToZeroAddress.getAddress(), deployer.address, withdrawalAmount),
         ).to.be.revertedWithCustomError(this.contract, 'FxERC20TokenNotMapped');
       });
 
       it('reverts if the token is not mapped (wrong mapping)', async function () {
         await expect(
-          this.contract.withdrawTo(this.unmappedTokenToWrongAddress.address, deployer.address, withdrawalAmount)
+          this.contract.withdrawTo(await this.unmappedTokenToWrongAddress.getAddress(), deployer.address, withdrawalAmount),
         ).to.be.revertedWithCustomError(this.contract, 'FxERC20TokenNotMapped');
       });
 
       context('when successful', function () {
         beforeEach(async function () {
           const childToken = (await ethers.getContractFactory('FxERC20MintBurn')).attach(await this.contract.rootToChildToken(rootToken));
-          await childToken.approve(this.contract.address, withdrawalAmount);
+          await childToken.approve(await this.contract.getAddress(), withdrawalAmount);
           this.recipient = other;
-          this.receipt = await this.contract.withdrawTo(childToken.address, this.recipient.address, withdrawalAmount);
+          this.receipt = await this.contract.withdrawTo(await childToken.getAddress(), this.recipient.address, withdrawalAmount);
         });
 
         withdraws(false);
@@ -258,24 +266,22 @@ describe('FxERC20MintBurnChildTunnel', function () {
 
     context('onERC20Received(address,address,uint256,bytes) receiver is from', function () {
       it('reverts if the token is not mapped (zero address)', async function () {
-        await expect(this.unmappedTokenToZeroAddress.safeTransfer(this.contract.address, withdrawalAmount, '0x')).to.be.revertedWithCustomError(
-          this.contract,
-          'FxERC20TokenNotMapped'
-        );
+        await expect(
+          this.unmappedTokenToZeroAddress.safeTransfer(await this.contract.getAddress(), withdrawalAmount, '0x'),
+        ).to.be.revertedWithCustomError(this.contract, 'FxERC20TokenNotMapped');
       });
 
       it('reverts if the token is not mapped (wrong mapping)', async function () {
-        await expect(this.unmappedTokenToWrongAddress.safeTransfer(this.contract.address, withdrawalAmount, '0x')).to.be.revertedWithCustomError(
-          this.contract,
-          'FxERC20TokenNotMapped'
-        );
+        await expect(
+          this.unmappedTokenToWrongAddress.safeTransfer(await this.contract.getAddress(), withdrawalAmount, '0x'),
+        ).to.be.revertedWithCustomError(this.contract, 'FxERC20TokenNotMapped');
       });
 
       context('when successful', function () {
         beforeEach(async function () {
           const childToken = (await ethers.getContractFactory('FxERC20MintBurn')).attach(await this.contract.rootToChildToken(rootToken));
           this.recipient = deployer;
-          this.receipt = await childToken.safeTransfer(this.contract.address, withdrawalAmount, '0x');
+          this.receipt = await childToken.safeTransfer(await this.contract.getAddress(), withdrawalAmount, '0x');
         });
 
         withdraws(true);
@@ -286,27 +292,31 @@ describe('FxERC20MintBurnChildTunnel', function () {
       it('reverts if the withdrawal recipient is the zero address', async function () {
         const childToken = (await ethers.getContractFactory('FxERC20FixedSupply')).attach(await this.contract.rootToChildToken(rootToken));
         await expect(
-          childToken.safeTransfer(this.contract.address, withdrawalAmount, ethers.utils.defaultAbiCoder.encode(['address'], [constants.AddressZero]))
+          childToken.safeTransfer(
+            await this.contract.getAddress(),
+            withdrawalAmount,
+            ethers.AbiCoder.defaultAbiCoder().encode(['address'], [ethers.ZeroAddress]),
+          ),
         ).to.be.revertedWithCustomError(this.contract, 'FxERC20InvalidWithdrawalAddress');
       });
 
       it('reverts if the token is not mapped (zero address)', async function () {
         await expect(
           this.unmappedTokenToZeroAddress.safeTransfer(
-            this.contract.address,
+            await this.contract.getAddress(),
             withdrawalAmount,
-            ethers.utils.defaultAbiCoder.encode(['address'], [deployer.address])
-          )
+            ethers.AbiCoder.defaultAbiCoder().encode(['address'], [deployer.address]),
+          ),
         ).to.be.revertedWithCustomError(this.contract, 'FxERC20TokenNotMapped');
       });
 
       it('reverts if the token is not mapped (wrong mapping)', async function () {
         await expect(
           this.unmappedTokenToWrongAddress.safeTransfer(
-            this.contract.address,
+            await this.contract.getAddress(),
             withdrawalAmount,
-            ethers.utils.defaultAbiCoder.encode(['address'], [deployer.address])
-          )
+            ethers.AbiCoder.defaultAbiCoder().encode(['address'], [deployer.address]),
+          ),
         ).to.be.revertedWithCustomError(this.contract, 'FxERC20TokenNotMapped');
       });
 
@@ -315,9 +325,9 @@ describe('FxERC20MintBurnChildTunnel', function () {
           const childToken = (await ethers.getContractFactory('FxERC20MintBurn')).attach(await this.contract.rootToChildToken(rootToken));
           this.recipient = other;
           this.receipt = await childToken.safeTransfer(
-            this.contract.address,
+            await this.contract.getAddress(),
             withdrawalAmount,
-            ethers.utils.defaultAbiCoder.encode(['address'], [this.recipient.address])
+            ethers.AbiCoder.defaultAbiCoder().encode(['address'], [this.recipient.address]),
           );
         });
 
