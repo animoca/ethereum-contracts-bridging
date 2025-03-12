@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.8;
+pragma solidity ^0.8.28;
 
 /// @notice Initialization interface for an Fx child fixed supply ERC20
 interface IFxERC20FixedSupply {

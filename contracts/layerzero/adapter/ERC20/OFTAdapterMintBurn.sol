@@ -24,7 +24,7 @@ contract OFTAdapterMintBurn is OFTAdapterCore {
         uint32 dstEid
     ) internal virtual override returns (uint256 amountSentLD, uint256 amountReceivedLD) {
         (amountSentLD, amountReceivedLD) = _debitView(amountLD, minAmountLD, dstEid);
-        IERC20Burnable(_innerToken).burnFrom(from, amountSentLD);
+        IERC20Burnable(_INNER_TOKEN).burnFrom(from, amountSentLD);
     }
 
     /// @dev Mints tokens to the specified address.
@@ -33,7 +33,7 @@ contract OFTAdapterMintBurn is OFTAdapterCore {
     /// @dev srcEid The source chain ID.
     /// @return amountReceivedLD The amount of tokens ACTUALLY received in local decimals.
     function _credit(address to, uint256 amountLD, uint32 /*srcEid*/) internal virtual override returns (uint256 amountReceivedLD) {
-        IERC20Mintable(_innerToken).mint(to, amountLD);
+        IERC20Mintable(_INNER_TOKEN).mint(to, amountLD);
         return amountLD;
     }
 }

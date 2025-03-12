@@ -8,7 +8,7 @@ import {OFTCore} from "@layerzerolabs/oft-evm/contracts/OFTCore.sol";
 
 /// @title OFTAdapterCore
 abstract contract OFTAdapterCore is OFTCore {
-    address internal immutable _innerToken;
+    address internal immutable _INNER_TOKEN;
 
     /// @notice Constructor for the OFTAdapterCore contract.
     /// @param innerToken The address of the ERC-20 token to be adapted.
@@ -19,12 +19,12 @@ abstract contract OFTAdapterCore is OFTCore {
         address lzEndpoint,
         address delegate
     ) OFTCore(IERC20Metadata(innerToken).decimals(), lzEndpoint, delegate) Ownable(delegate) {
-        _innerToken = innerToken;
+        _INNER_TOKEN = innerToken;
     }
 
     /// @inheritdoc IOFT
     function token() public view returns (address) {
-        return _innerToken;
+        return _INNER_TOKEN;
     }
 
     /// @inheritdoc IOFT

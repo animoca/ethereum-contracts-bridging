@@ -14,7 +14,7 @@ contract FxERC20MintBurnRootTunnelMock is FxERC20MintBurnRootTunnel {
 
     function childToken(address rootToken) external view returns (address) {
         bytes32 salt = keccak256(abi.encodePacked(rootToken));
-        return computedCreate2Address(salt, childTokenProxyCodeHash, fxChildTunnel);
+        return computedCreate2Address(salt, CHILD_TOKEN_PROXY_CODE_HASH, fxChildTunnel);
     }
 
     function __processMessageFromChild(bytes calldata data) external {

@@ -44,7 +44,7 @@
   },
   "devDependencies": {
     "@animoca/ethereum-contract-helpers": "^1.0.4",
-    "@animoca/ethereum-contracts": "=4.1.1",
+    "@animoca/ethereum-contracts": "=4.1.2",
     "@layerzerolabs/lz-evm-protocol-v2": "^3.0.77",
     "@layerzerolabs/oapp-evm": "^0.3.2",
     "@layerzerolabs/oft-evm": "^3.1.3",

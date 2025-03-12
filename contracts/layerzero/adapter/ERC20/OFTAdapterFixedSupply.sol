@@ -26,7 +26,7 @@ contract OFTAdapterFixedSupply is OFTAdapterCore {
         uint32 dstEid
     ) internal virtual override returns (uint256 amountSentLD, uint256 amountReceivedLD) {
         (amountSentLD, amountReceivedLD) = _debitView(amountLD, minAmountLD, dstEid);
-        IERC20(_innerToken).safeTransferFrom(from, address(this), amountSentLD);
+        IERC20(_INNER_TOKEN).safeTransferFrom(from, address(this), amountSentLD);
     }
 
     /// @dev Credits tokens to the specified address.
@@ -35,7 +35,7 @@ contract OFTAdapterFixedSupply is OFTAdapterCore {
     /// @dev srcEid The source chain ID.
     /// @return amountReceivedLD The amount of tokens ACTUALLY received in local decimals.
     function _credit(address to, uint256 amountLD, uint32 /*srcEid*/) internal virtual override returns (uint256 amountReceivedLD) {
-        IERC20(_innerToken).safeTransfer(to, amountLD);
+        IERC20(_INNER_TOKEN).safeTransfer(to, amountLD);
         return amountLD;
     }
 }

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.8;
+pragma solidity ^0.8.28;
 
 abstract contract FxERC20TunnelEvents {
     /// @notice Emitted when an ERC20 token has been mapped.

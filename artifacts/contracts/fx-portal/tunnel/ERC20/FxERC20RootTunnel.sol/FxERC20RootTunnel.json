@@ -129,6 +129,19 @@
     },
     {
       "inputs": [],
+      "name": "CHILD_TOKEN_PROXY_CODE_HASH",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
       "name": "DEPOSIT",
       "outputs": [
         {
@@ -174,19 +187,6 @@
           "internalType": "contract ICheckpointManager",
           "name": "",
           "type": "address"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "childTokenProxyCodeHash",
-      "outputs": [
-        {
-          "internalType": "bytes32",
-          "name": "",
-          "type": "bytes32"
         }
       ],
       "stateMutability": "view",
