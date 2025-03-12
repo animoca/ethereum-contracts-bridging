@@ -20,7 +20,7 @@ abstract contract FxERC20ChildTunnel is FxBaseChildTunnel, FxTokenMapping, FxERC
     string public constant SUFFIX_NAME = " (Polygon)";
     string public constant PREFIX_SYMBOL = "p";
 
-    address public immutable childTokenLogic;
+    address public immutable CHILD_TOKEN_LOGIC;
 
     /// @notice Thrown during construction if the provided child token logic address is not a deployed contract.
     error FxERC20ChildTokenLogicNotContract();
@@ -49,7 +49,7 @@ abstract contract FxERC20ChildTunnel is FxBaseChildTunnel, FxTokenMapping, FxERC
         if (!childTokenLogic_.hasBytecode()) {
             revert FxERC20ChildTokenLogicNotContract();
         }
-        childTokenLogic = childTokenLogic_;
+        CHILD_TOKEN_LOGIC = childTokenLogic_;
     }
 
     /// @notice Handles the receipt of ERC20 tokens as a withdrawal request.
@@ -151,7 +151,7 @@ abstract contract FxERC20ChildTunnel is FxBaseChildTunnel, FxTokenMapping, FxERC
 
         // deploy new child token
         bytes32 salt = keccak256(abi.encodePacked(rootToken));
-        childToken = createClone(salt, childTokenLogic);
+        childToken = createClone(salt, CHILD_TOKEN_LOGIC);
 
         _initializeChildToken(rootToken, childToken, initArguments);
 
