@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.0.1
+
+### Bugfixes
+
+- Downgraded to `chai@4` due to incompatibility with hardhat.
+- Added package `resolutions` for `@ethersproject/**@5`, `elliptic`, `@openzeppelin/contracts`, `@openzeppelin/contracts-upgradeable`, `axios` and `cookie` to fix security issues in transitive dependencies.
+
 ## 2.0.0
 
 ### Breaking changes
